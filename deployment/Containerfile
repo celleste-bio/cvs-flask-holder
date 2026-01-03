@@ -21,7 +21,7 @@ RUN apt-get update && apt-get install -y \
 # Install PrusaSlicer AppImage
 # Using a specific version for reproducibility
 ENV PRUSA_VERSION=2.8.1
-ENV PRUSA_URL=https://github.com/prusa3d/PrusaSlicer/releases/download/version_${PRUSA_VERSION}/PrusaSlicer-${PRUSA_VERSION}+linux-x64-GTK3-202409181416.AppImage
+ENV PRUSA_URL=https://github.com/prusa3d/PrusaSlicer/releases/download/version_${PRUSA_VERSION}/PrusaSlicer-${PRUSA_VERSION}+linux-x64-newer-distros-GTK3-202409181416.AppImage
 ENV PRUSA_PATH=/opt/PrusaSlicer.AppImage
 
 RUN wget -O ${PRUSA_PATH} ${PRUSA_URL} && \
