@@ -7,11 +7,12 @@ set -e
 volumes=("100ml" "250ml" "500ml" "1000ml" "2000ml")
 
 for vol in "${volumes[@]}"; do
-    if [ -d "$vol" ]; then
-        echo "Rendering $vol/holder.scad to $vol/holder.stl..."
-        openscad -o "$vol/holder.stl" "$vol/holder.scad"
+    path="models/$vol"
+    if [ -d "$path" ]; then
+        echo "Rendering $path/holder.scad to $path/holder.stl..."
+        openscad -o "$path/holder.stl" "$path/holder.scad"
     else
-        echo "Warning: Directory $vol not found."
+        echo "Warning: Directory $path not found."
     fi
 done
 

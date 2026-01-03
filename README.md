@@ -69,9 +69,10 @@ This will pull the necessary dependencies (`lua-utils` and `lua-openscad`) into 
     - `flask.lua`: Generates the flask shape.
     - `holder.lua`: Generates the holder apparatus.
 - **`scripts/`**: Helper shell scripts for batch processing.
-- **`[size]ml/`** (e.g., `100ml/`, `250ml/`): Configuration directories for specific flask sizes. Each contains:
-    - `measurements.yaml`: Definition of flask dimensions.
-    - `*.scad`: Generated OpenSCAD files.
+- **`models/`**: Contains configuration and generated files for specific flask sizes.
+    - **`[size]ml/`** (e.g., `100ml/`, `250ml/`):
+        - `measurements.yaml`: Definition of flask dimensions.
+        - `*.scad`: Generated OpenSCAD files.
 - **`publication/`**: Files for generating the scientific paper documentation (PDF).
 - **`docs/`**: Documentation and reference papers.
 - **`deps/`**: Local dependencies (submodules).
