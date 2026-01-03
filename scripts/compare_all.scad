@@ -57,5 +57,3 @@ translate([45, -20, 0]) {
     // 1000 ml flask
     include <../models/1000ml/flask.scad>
 }
-
-
