@@ -1,6 +1,6 @@
 -- Setup paths for dependencies
 local script_dir = arg[0]:match("(.*[/\\])") or "./"
-package.path = script_dir .. "../deps/lua-utils/src/?.lua;" .. script_dir .. "../deps/lua-openscad/src/?.lua;" .. package.path
+package.path = script_dir .. "../dependencies/lua-utils/src/?.lua;" .. script_dir .. "../dependencies/lua-openscad/src/?.lua;" .. package.path
 
 require("utils").using("utils")
 using("dataframes")

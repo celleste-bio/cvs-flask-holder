@@ -2,7 +2,7 @@
 
 Parametric OpenSCAD implementations of the **CVS (Cell Volume after Sedimentation) Apparatus**.
  
-This project provides a **parametric, 3D-printable model** of the CVS apparatus described by [Mustafa et al. (2011)](docs/Initiation_growth_and_cryopreservation_of_plant_ce.pdf). While the measurement method itself is established, this repository offers a flexible design that can be customized to fit any Erlenmeyer flask dimensions, optimizing it for 3D printing and laboratory use.
+This project provides a **parametric, 3D-printable model** of the CVS apparatus described by [Mustafa et al. (2011)](documentation/Initiation_growth_and_cryopreservation_of_plant_ce.pdf). While the measurement method itself is established, this repository offers a flexible design that can be customized to fit any Erlenmeyer flask dimensions, optimizing it for 3D printing and laboratory use.
 
 ## Scientific Context & Benefits
 
@@ -39,8 +39,8 @@ Standard flask markings are notoriously inaccurate (5-10% error margin) and desi
 > **Reference Paper:**
 > Mustafa, N. R., de Winter, W., van Iren, F. & Verpoorte, R. (2011). **Initiation, growth and cryopreservation of plant cell suspension cultures**. *Nature Protocols*, 6(6), 715–742.
 
-A copy of the reference paper is available in the `docs/` directory:
-- [files/Initiation_growth_and_cryopreservation_of_plant_ce.pdf](docs/Initiation_growth_and_cryopreservation_of_plant_ce.pdf)
+A copy of the reference paper is available in the `documentation/` directory:
+- [files/Initiation_growth_and_cryopreservation_of_plant_ce.pdf](documentation/Initiation_growth_and_cryopreservation_of_plant_ce.pdf)
 
 *Note: The apparatus provided here is a supplementary tool to facilitate the handling of flasks described in the protocol. It is not the invention claimed in the cited patent (US Patent 5,965,438), which relates to the cryopreservation method itself.*
 
@@ -61,7 +61,7 @@ cd erlenmeyer-holders
 git submodule update --init --recursive
 ```
 
-This will pull the necessary dependencies (`lua-utils` and `lua-openscad`) into the `deps/` directory.
+This will pull the necessary dependencies (`lua-utils` and `lua-openscad`) into the `dependencies/` directory.
 
 ## Deployment / Reproduction
 
@@ -84,7 +84,7 @@ Once inside the container (which mounts the current directory to `/data`), you c
 
 **Generate Documentation (PDF):**
 ```bash
-cd publication
+cd publications
 make
 ```
 
@@ -96,7 +96,7 @@ make
 
 ## Repository Structure
 
-- **`src/`**: Lua scripts replaced `parametric/` that define the parametric 3D geometry.
+- **`source/`**: Lua scripts replaced `parametric/` that define the parametric 3D geometry.
     - `flask.lua`: Generates the flask shape.
     - `holder.lua`: Generates the holder apparatus.
 - **`scripts/`**: Helper shell scripts for batch processing.
@@ -104,16 +104,16 @@ make
     - **`[size]ml/`** (e.g., `100ml/`, `250ml/`):
         - `measurements.yaml`: Definition of flask dimensions.
         - `*.scad`: Generated OpenSCAD files.
-- **`publication/`**: Files for generating the scientific paper documentation (PDF).
-- **`docs/`**: Documentation and reference papers.
-- **`deps/`**: Local dependencies (submodules).
+- **`publications/`**: Files for generating the scientific paper documentation (PDF).
+- **`documentation/`**: Documentation and reference papers.
+- **`dependencies/`**: Local dependencies (submodules).
 
 ## Publication
- 
-A scientific paper format of this documentation is available in the `publication/` directory. To generate the PDF:
- 
+
+A scientific paper format of this documentation is available in the `publications/` directory. To generate the PDF:
+
 ```bash
-cd publication
+cd publications
 make
 ```
 
