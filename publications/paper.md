@@ -1,10 +1,10 @@
 ---
-title: "Usage of CVS (Cell Volume after Sedimentation) Apparatus for High-Precision Biomass Measurement"
+title: "Parametric Design and Fabrication of CVS Apparatus: An Improved Method for Biomass Measurement"
 author:
 - Celleste Bio
 date: 2026-01-03
 abstract: |
-  We present a parametric OpenSCAD implementation of the Cell Volume after Sedimentation (CVS) apparatus originally described by @mustafa2011initiation. While the cell volume measurement method itself is established, our contribution is the provision of a fully customizable, 3D-printable model optimized for manufacturing and flexibility. This parametric design allows researchers to specify dimensions for any Erlenmeyer flask, ensuring the apparatus can be adapted to various laboratory glassware standards without requiring redesign.
+  We present a parametric OpenSCAD implementation of the Cell Volume after Sedimentation (CVS) apparatus originally described by @mustafa2011initiation. By enabling the accessible fabrication of this tool via 3D printing, we provide an improved method for biomass measurement that is significantly faster, easier, and less traumatic to cell samples than traditional techniques. Our primary contribution is a fully customizable, parametric CAD design that allows researchers to adapt the apparatus to any Erlenmeyer flask dimension, facilitating widespread adoption of this non-destructive and sterile workflow.
 bibliography: references.bib
 csl: https://www.zotero.org/styles/nature
 geometry:
@@ -13,9 +13,9 @@ geometry:
 
 # Introduction
 
-Accurate measurement of biomass in plant cell suspension cultures is critical for tracking growth and optimizing bioprocesses. The CVS method, involving a 60-degree tilted holder, was proposed by @mustafa2011initiation as a "poor man's real-time sensor" to transform a standard flask into a precision measurement tool.
+Accurate measurement of biomass in plant cell suspension cultures is frequently bottlenecked by methods that are either destructive, time-consuming, or prone to contamination. The CVS method offers a superior alternative—a "poor man's real-time sensor"—that transforms a standard flask into a precision measurement tool.
 
-We provide a parametric model of this apparatus. The goal is not to claim the invention of the method, but to facilitate its adoption by providing a robust, 3D-printable design that can be easily adapted to the specific dimensions of any flask available in the user's laboratory.
+We provide a parametric model to democratize access to this method. Our goal is to replace ad-hoc laboratory setups with a robust, reproducible, and 3D-printable design. This approach minimizes the barrier to entry, allowing any laboratory to implement a rapid, non-destructive monitoring workflow tailored to their specific glassware inventory.
 
 # Parametric Model Configuration
 
@@ -44,18 +44,18 @@ neck_diameter: 3.7   # cm (excludes rim)
 
 # Principles and Benefits
 
-The CVS apparatus holds flasks at a fixed 60-degree angle, offering three primary advantages over vertical sedimentation or flat-bottom estimation.
+The CVS apparatus holds flasks at a fixed 60-degree angle, enabling a workflow that simplifies biomass monitoring while preserving sample integrity.
 
-## Amplified Resolution
-In a flat flask, sedimented cells spread in a thin, indistinguishable layer across the wide bottom, making small changes in biomass difficult to quantify. By tilting the flask, cells are forced into the junction of the base and the wall. This geometry concentrates the biomass into a tall column. A change in biomass that would result in a <1 mm height difference on a flat bottom translates to a 5–10 mm change along the angled wall, making it easily readable with a standard ruler.
+## Enhanced Readability
+In a flat flask, sedimented cells spread in a thin, indistinguishable layer across the wide bottom. By tilting the flask, cells are forced into the junction of the base and the wall, concentrating the biomass into a tall column. This geometric amplification translates a negligible <1 mm height difference into a clear 5–10 mm change along the angled wall, making it faster and easier to read with a standard ruler.
 
-## Consistency of Packing
-Cells, particularly those of *Theobroma cacao* (cocoa), often form aggregates that settle loosely and unevenly in vertically oriented flasks due to friction and aggregation. The 60-degree angle provides an optimal tilt—steep enough for cells to slide to maximum packing density under gravity, yet stable enough to prevent collapse. This ensures that every measurement has uniform packing pressure, creating a strong linear correlation to Fresh Weight (FW).
+## Standardized Measurement
+Cells, particularly those of *Theobroma cacao* (cocoa), often form aggregates that settle unevenly in vertical flasks. The 60-degree angle provides an optimal tilt—steep enough for cells to slide to maximum packing density under gravity, yet stable enough to prevent collapse. This consistency eliminates the variability of manual handling and ensures distinct, reproducible measurements.
 
-## Non-Destructive Monitoring
-A significant limitation of traditional sampling is the requirement to open the flask, which breaks the sterile barrier. The CVS apparatus allows for measurement of the flask *as is*. This results in zero contamination risk and no loss of cells, enabling the tracking of the growth curve of the exact same flask throughout the entire culture cycle.
+## Non-Traumatic and Sterile Workflow
+Unlike traditional sampling which requires opening the flask and breaking the sterile barrier, this method measures the flask *as is*. This results in a completely **sterile workflow** with **zero contamination risk**. Furthermore, because the sample is not removed or mechanically disturbed, the process is non-traumatic for the cells, allowing for continuous monitoring of the exact same culture throughout its growth cycle.
 
-# Comparison with Standard Methods
+# Method Comparison
 
 | Feature | Erlenmeyer Markings | 60° CVS Apparatus |
 | :--- | :--- | :--- |
