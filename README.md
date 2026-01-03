@@ -63,6 +63,37 @@ git submodule update --init --recursive
 
 This will pull the necessary dependencies (`lua-utils` and `lua-openscad`) into the `deps/` directory.
 
+## Deployment / Reproduction
+
+To ensure a consistent environment for generating models and documentation, we provide a **Podman** container configuration.
+
+### 1. Build and Run Container
+Use the provided helper script to build the image and enter the container shell:
+
+```bash
+./deployment/build_and_run.sh
+```
+
+### 2. Run Tasks Inside Container
+Once inside the container (which mounts the current directory to `/data`), you can run the standard workflows:
+
+**Generate Models:**
+```bash
+./scripts/model_all.sh
+```
+
+**Generate Documentation (PDF):**
+```bash
+cd publication
+make
+```
+
+**Slice Models (Generates G-code):**
+```bash
+./scripts/slice_all.sh
+```
+*(Note: The container includes a PrusaSlicer AppImage)*
+
 ## Repository Structure
 
 - **`src/`**: Lua scripts replaced `parametric/` that define the parametric 3D geometry.

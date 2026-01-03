@@ -1,0 +1,37 @@
+FROM debian:bookworm-slim
+
+# Install system dependencies
+# - lua5.1: For parametric scripts
+# - openscad: For 3D modeling
+# - pandoc, texlive-*: For documentation generation
+# - git, make, wget: Utilities
+RUN apt-get update && apt-get install -y \
+    lua5.1 \
+    openscad \
+    pandoc \
+    texlive-latex-base \
+    texlive-latex-extra \
+    texlive-fonts-recommended \
+    git \
+    make \
+    wget \
+    libfuse2 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install PrusaSlicer AppImage
+# Using a specific version for reproducibility
+ENV PRUSA_VERSION=2.8.1
+ENV PRUSA_URL=https://github.com/prusa3d/PrusaSlicer/releases/download/version_${PRUSA_VERSION}/PrusaSlicer-${PRUSA_VERSION}+linux-x64-GTK3-202409181416.AppImage
+ENV PRUSA_PATH=/opt/PrusaSlicer.AppImage
+
+RUN wget -O ${PRUSA_PATH} ${PRUSA_URL} && \
+    chmod +x ${PRUSA_PATH}
+
+# Set environment variable for the slicing script
+ENV PRUSASLICER=${PRUSA_PATH}
+
+# Create a working directory
+WORKDIR /data
+
+# Default command
+CMD ["/bin/bash"]

@@ -18,8 +18,10 @@ find models -name "holder.stl" | sort | while read -r file; do
     echo "Slicing $size model from $file..."
     
     # Run prusa slicer
-    # Note: --center 125,105 centers it on the MK4 bed (250x210)
-    /home/bensiv/Apps/prusa3d_linux_2_8_1/PrusaSlicer-2.8.1+linux-x64-newer-distros-GTK3-202409181416.AppImage -g "$file" \
+    # Use PRUSASLICER env var or default to local path
+    SLICER="${PRUSASLICER:-/home/bensiv/Apps/prusa3d_linux_2_8_1/PrusaSlicer-2.8.1+linux-x64-newer-distros-GTK3-202409181416.AppImage}"
+
+    "$SLICER" -g "$file" \
       -o "${dir}/holder.bgcode" \
       --printer-profile "$PRINTER" \
       --print-profile "$PRINT_PROFILE" \
