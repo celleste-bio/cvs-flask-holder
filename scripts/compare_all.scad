@@ -58,15 +58,4 @@ translate([45, -20, 0]) {
     include <../models/1000ml/flask.scad>
 }
 
-translate([60, 20, 0]) {
-    // 2000 ml holder
-    include <../models/2000ml/holder.scad>
-}
-translate([60, 0, 0]) {
-    // 2000 ml holder
-    include <../models/2000ml/holder_with_flask.scad>
-}
-translate([60, -20, 0]) {
-    // 2000 ml flask
-    include <../models/2000ml/flask.scad>
-}
+

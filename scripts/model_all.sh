@@ -19,9 +19,3 @@ echo "1000 ml"
 lua source/flask.lua models/1000ml/measurements.yaml models/1000ml/flask.scad
 lua source/holder.lua models/1000ml/measurements.yaml models/1000ml/holder.scad
 lua source/holder.lua models/1000ml/measurements.yaml models/1000ml/holder_with_flask.scad true
-
-echo "2000 ml"
-lua source/flask.lua models/2000ml/measurements.yaml models/2000ml/flask.scad
-lua source/holder.lua models/2000ml/measurements.yaml models/2000ml/holder.scad
-lua source/holder.lua models/2000ml/measurements.yaml models/2000ml/holder_with_flask.scad true
-

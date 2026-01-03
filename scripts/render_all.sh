@@ -4,7 +4,7 @@
 set -e
 
 # List of volume directories
-volumes=("100ml" "250ml" "500ml" "1000ml" "2000ml")
+volumes=("100ml" "250ml" "500ml" "1000ml")
 
 for vol in "${volumes[@]}"; do
     path="models/$vol"
