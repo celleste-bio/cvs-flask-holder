@@ -7,6 +7,9 @@ FROM debian:bookworm-slim
 # - git, make, wget: Utilities
 RUN apt-get update && apt-get install -y \
     lua5.1 \
+    liblua5.1-0-dev \
+    luarocks \
+    build-essential \
     openscad \
     pandoc \
     texlive-latex-base \
@@ -17,6 +20,11 @@ RUN apt-get update && apt-get install -y \
     wget \
     libfuse2 \
     && rm -rf /var/lib/apt/lists/*
+
+# Install Lua dependencies
+RUN luarocks install luafilesystem && \
+    luarocks install lua-yaml && \
+    luarocks install dkjson
 
 # Install PrusaSlicer AppImage
 # Using a specific version for reproducibility
