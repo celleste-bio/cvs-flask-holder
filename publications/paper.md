@@ -7,6 +7,8 @@ abstract: |
   We present a parametric OpenSCAD implementation of the Cell Volume after Sedimentation (CVS) apparatus originally described by @mustafa2011initiation. While the cell volume measurement method itself is established, our contribution is the provision of a fully customizable, 3D-printable model optimized for manufacturing and flexibility. This parametric design allows researchers to specify dimensions for any Erlenmeyer flask, ensuring the apparatus can be adapted to various laboratory glassware standards without requiring redesign.
 bibliography: references.bib
 csl: https://www.zotero.org/styles/nature
+geometry:
+  - margin=2cm
 ---
 
 # Introduction
