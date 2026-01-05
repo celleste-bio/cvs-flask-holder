@@ -17,6 +17,8 @@ Accurate measurement of biomass in plant cell suspension cultures is frequently 
 
 We provide a parametric model to democratize access to this method. Our goal is to replace ad-hoc laboratory setups with a robust, reproducible, and 3D-printable design. This approach minimizes the barrier to entry, allowing any laboratory to implement a rapid, non-destructive monitoring workflow tailored to their specific glassware inventory.
 
+![CVS Apparatus in a laboratory setting.](images/holder_with_flask_lab.jpeg){ width=100% }
+
 # Parametric Model Configuration
 
 To ensure the apparatus fits the flask securely and provides accurate sedimentation angles, the model requires specific dimensions of the user's flask. These are defined in a YAML configuration file.
@@ -41,6 +43,10 @@ neck_height: 1.0     # cm (includes rim)
 base_diameter: 8.0   # cm
 neck_diameter: 3.7   # cm (excludes rim)
 ```
+
+![Front view of the parametric model with flask.](images/holder_with_flask_front.png){ width=45% } \ \ 
+![Back view of the parametric model with flask.](images/holder_with_flask_back.png){ width=45% }
+
 
 # Principles and Benefits
 
@@ -69,6 +75,10 @@ Unlike traditional sampling which requires opening the flask and breaking the st
 The models were optimized for fabrication using **Fused Deposition Modeling (FDM)** 3D printing. We utilized the **[Original Prusa MK4S](https://www.prusa3d.com/product/original-prusa-mk4s-3d-printer/)** 3D printer for its reliability and precision.
 
 Preprocessing and slicing were performed using **[PrusaSlicer](https://www.prusa3d.com/page/prusaslicer_424/)**, which ensures optimal toolpath generation for structural integrity and print quality. The batch processing scripts provided in the repository utilize the PrusaSlicer CLI interface to automate the generation of G-code for multiple flask sizes.
+
+![3D printed holder (Front).](images/holder_front.png){ width=45% } \ \ 
+![3D printed holder (Back).](images/holder_back.png){ width=45% }
+
 
 # References
 The apparatus described here serves as a supplementary tool to facilitate the handling of flasks described in the protocol by @mustafa2011initiation. Note that this tool is not the invention claimed in the cited patent (US Patent 5,965,438), which relates to the cryopreservation method itself.
