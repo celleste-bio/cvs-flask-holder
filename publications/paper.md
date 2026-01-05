@@ -44,8 +44,11 @@ base_diameter: 8.0   # cm
 neck_diameter: 3.7   # cm (excludes rim)
 ```
 
-![Front view of the parametric model with flask.](images/holder_with_flask_front.png){ width=45% } \ \ 
-![Back view of the parametric model with flask.](images/holder_with_flask_back.png){ width=45% }
+![Front view: With Flask (Left) and Without Flask (Right).](images/holder_with_flask_front.png){ width=45% } \ \ 
+![Front view: Without Flask.](images/holder_front.png){ width=45% }
+
+![Back view: With Flask (Left) and Without Flask (Right).](images/holder_with_flask_back.png){ width=45% } \ \ 
+![Back view: Without Flask.](images/holder_back.png){ width=45% }
 
 
 # Principles and Benefits
@@ -63,12 +66,16 @@ Unlike traditional sampling which requires opening the flask and breaking the st
 
 # Method Comparison
 
-| Feature | Erlenmeyer Markings | 60° CVS Apparatus |
+We compare the CVS apparatus with the traditional **Packed Cell Volume (PCV)** method, which involves centrifuging a sub-sample of the culture (typically 10-15 mL) in a 50 mL Falcon tube. While PCV provides a direct volumetric measurement, it introduces significant drawbacks regarding sterility and sample integrity.
+
+| Feature | Packed Cell Volume (PCV) | 60° CVS Apparatus |
 | :--- | :--- | :--- |
-| **Accuracy** | ± 10% (Approximate) | **High** (Correlates to Fresh Weight) |
-| **Readability** | Very poor for thin layers | **High** (Vertical height is amplified) |
-| **Contamination Risk** | Low | **Zero** (Flask remains sealed) |
-| **Suitability for Cocoa** | Poor (Aggregates settle unevenly) | **Excellent** (Optimal packing) |
+| **Contamination Risk** | **High** (Breaks sterile barrier) | **Zero** (Flask remains sealed) |
+| **Sample Representativeness** | **Variable** (Sub-sample dependent) | **Complete** (Measures whole culture) |
+| **Material Loss** | **Yes** (Destructive sub-sampling) | **None** (Non-destructive) |
+| **Time Cost** | **High** (Pipetting, Centrifugation) | **Low** (Instant visual read) |
+| **Equipment** | **Significant** (Centrifuge, tubes, tips) | **Minimal** (3D Printed Holder, Ruler) |
+| **Measurement Accuracy** | **High** (For the sub-sample) | **High** (Amplified height, correlates to FW) |
 
 # Fabrication
 
@@ -76,8 +83,7 @@ The models were optimized for fabrication using **Fused Deposition Modeling (FDM
 
 Preprocessing and slicing were performed using **[PrusaSlicer](https://www.prusa3d.com/page/prusaslicer_424/)**, which ensures optimal toolpath generation for structural integrity and print quality. The batch processing scripts provided in the repository utilize the PrusaSlicer CLI interface to automate the generation of G-code for multiple flask sizes.
 
-![3D printed holder (Front).](images/holder_front.png){ width=45% } \ \ 
-![3D printed holder (Back).](images/holder_back.png){ width=45% }
+
 
 
 # References
