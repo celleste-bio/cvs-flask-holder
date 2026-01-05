@@ -2,7 +2,7 @@
 title: "Parametric Design and Fabrication of CVS Apparatus: An Improved Method for Biomass Measurement"
 author:
 - Celleste Bio
-date: 2026-01-03
+date: 2026-01-05
 abstract: |
   We present a parametric OpenSCAD implementation of the Cell Volume after Sedimentation (CVS) apparatus originally described by @mustafa2011initiation. By enabling the accessible fabrication of this tool via 3D printing, we provide an improved method for biomass measurement that is significantly faster, easier, and less traumatic to cell samples than traditional techniques. Our primary contribution is a fully customizable, parametric CAD design that allows researchers to adapt the apparatus to any Erlenmeyer flask dimension, facilitating widespread adoption of this non-destructive and sterile workflow.
 bibliography: references.bib
@@ -75,7 +75,7 @@ We compare the CVS apparatus with the traditional **Packed Cell Volume (PCV)** m
 | **Material Loss** | **Yes** (Destructive sub-sampling) | **None** (Non-destructive) |
 | **Time Cost** | **High** (Pipetting, Centrifugation) | **Low** (Instant visual read) |
 | **Equipment** | **Significant** (Centrifuge, tubes, tips) | **Minimal** (3D Printed Holder, Ruler) |
-| **Measurement Accuracy** | **High** (For the sub-sample) | **High** (Amplified height, correlates to FW) |
+| **Measurement Accuracy** | **High** (For the sub-sample) | **High** (Amplified height, correlates to fresh weight) |
 
 # Fabrication
 
