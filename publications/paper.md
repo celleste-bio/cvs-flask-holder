@@ -17,7 +17,7 @@ Accurate measurement of biomass in plant cell suspension cultures is frequently 
 
 We provide a parametric model to democratize access to this method. Our goal is to replace ad-hoc laboratory setups with a robust, reproducible, and 3D-printable design. This approach minimizes the barrier to entry, allowing any laboratory to implement a rapid, non-destructive monitoring workflow tailored to their specific glassware inventory.
 
-![CVS Apparatus in a laboratory setting.](images/holder_with_flask_lab.jpeg){ width=100% }
+![CVS Apparatus in a laboratory setting.](images/holder_with_flask_lab.png){ width=100% }
 
 # Parametric Model Configuration
 
