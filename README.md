@@ -4,6 +4,26 @@ Parametric OpenSCAD implementations of the **CVS (Cell Volume after Sedimentatio
  
 This project provides a **parametric, 3D-printable model** of the CVS apparatus described by Mustafa et al. (2011). While the measurement method itself is established, this repository offers a flexible design that can be customized to fit any Erlenmeyer flask dimensions, optimizing it for 3D printing and laboratory use.
 
+## Specification Tracking
+
+Manufacturer-backed flask specification tracking lives in [docs/erlenmeyer-specifications.csv](/root/cvs-flask-holder/docs/erlenmeyer-specifications.csv) with supporting notes in [docs/erlenmeyer-spec-sources.md](/root/cvs-flask-holder/docs/erlenmeyer-spec-sources.md).
+
+The current tracked manufacturer-specific plastic capped line is:
+
+- Tarsons sterile flat-base polycarbonate Erlenmeyer cell culture flasks with vented HDPE closure
+  - Source: https://www.tarsons.com/product/sterile-erlenmeyer-cell-culture-flask-flat-base-pc-with-vented-hdpe-closure/
+  - Modeled sizes: `125`, `250`, `500`, `1000`, `2000` mL
+  - Model folders: `models/tarsons_pc_vented_125ml` through `models/tarsons_pc_vented_2000ml`
+
+The CSV also tracks additional manufacturer resources and metadata such as material family, capped vs. rimmed/open neck, base style, sterility, and closure style for future model work.
+
+Smaller OpenSCAD comparison scenes are available in `scripts/`:
+
+- `compare_classic_open.scad` for the original open-rim flask set
+- `compare_tarsons_pc_vented.scad` for all Tarsons plastic capped vented flasks
+- `compare_tarsons_pc_vented_small.scad` for Tarsons 125/250/500 mL
+- `compare_tarsons_pc_vented_large.scad` for Tarsons 1000/2000 mL
+
 ## Scientific Context & Benefits
 
 This apparatus holds Erlenmeyer flasks at a precise **60-degree angle**, transforming a standard flask into a precision measurement tool ("the poor man's real-time sensor").
@@ -128,8 +148,12 @@ The provided `slice_all.sh` script is configured for PrusaSlicer CLI.
 ## Usage
 
 ### 1. Configure Dimensions
-### 1. Configure Dimensions
 Edit the `measurements.yaml` file in the desired size folder (e.g., `100ml/measurements.yaml`) to match your specific flask dimensions.
+
+For manufacturer-specific folders, keep two things separate:
+
+- published dimensions copied directly from the source
+- modeling assumptions needed by this geometry, such as outer neck diameter when a vendor only publishes inner neck diameter
 
 **Required Measurements:**
 
@@ -154,18 +178,18 @@ Use Lua to run the parametric scripts.
 
 **Generate a Flask Model:**
 ```bash
-lua parametric/flask.lua 100ml/measurements.yaml 100ml/flask.scad
+lua source/flask.lua models/100ml/measurements.yaml models/100ml/flask.scad
 ```
 
 **Generate a Holder Model:**
 ```bash
-lua parametric/holder.lua 100ml/measurements.yaml 100ml/holder.scad
+lua source/holder.lua models/100ml/measurements.yaml models/100ml/holder.scad
 ```
 
 **Generate a Holder with Flask Visualization:**
 ```bash
 # The 'true' argument adds a visual ghost of the flask to check fit
-lua parametric/holder.lua 100ml/measurements.yaml 100ml/holder_with_flask.scad true
+lua source/holder.lua models/100ml/measurements.yaml models/100ml/holder_with_flask.scad true
 ```
 
 ### 3. Batch Processing
@@ -173,15 +197,15 @@ Use the provided shell scripts (ensure they are executable: `chmod +x *.sh`):
 
 - **Generate All SCAD Files**:
   ```bash
-  ./model_all.sh
+  ./scripts/model_all.sh
   ```
 - **Render All to STL**:
   ```bash
-  ./render_all.sh
+  ./scripts/render_all.sh
   ```
 - **Slice All** (Requires PrusaSlicer CLI configuration):
   ```bash
-  ./slice_all.sh
+  ./scripts/slice_all.sh
   ```
 
 ## License

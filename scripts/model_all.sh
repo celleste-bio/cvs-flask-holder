@@ -1,21 +1,17 @@
 #!/bin/bash
+set -e
 
-echo "100 ml"
-lua source/flask.lua models/100ml/measurements.yaml models/100ml/flask.scad
-lua source/holder.lua models/100ml/measurements.yaml models/100ml/holder.scad
-lua source/holder.lua models/100ml/measurements.yaml models/100ml/holder_with_flask.scad true
+find models -mindepth 1 -maxdepth 1 -type d | sort | while read -r dir; do
+    measurements="$dir/measurements.yaml"
 
-echo "250 ml"
-lua source/flask.lua models/250ml/measurements.yaml models/250ml/flask.scad
-lua source/holder.lua models/250ml/measurements.yaml models/250ml/holder.scad
-lua source/holder.lua models/250ml/measurements.yaml models/250ml/holder_with_flask.scad true
+    if [ ! -f "$measurements" ]; then
+        continue
+    fi
 
-echo "500 ml"
-lua source/flask.lua models/500ml/measurements.yaml models/500ml/flask.scad
-lua source/holder.lua models/500ml/measurements.yaml models/500ml/holder.scad
-lua source/holder.lua models/500ml/measurements.yaml models/500ml/holder_with_flask.scad true
+    name=$(basename "$dir")
+    echo "$name"
 
-echo "1000 ml"
-lua source/flask.lua models/1000ml/measurements.yaml models/1000ml/flask.scad
-lua source/holder.lua models/1000ml/measurements.yaml models/1000ml/holder.scad
-lua source/holder.lua models/1000ml/measurements.yaml models/1000ml/holder_with_flask.scad true
+    lua source/flask.lua "$measurements" "$dir/flask.scad"
+    lua source/holder.lua "$measurements" "$dir/holder.scad"
+    lua source/holder.lua "$measurements" "$dir/holder_with_flask.scad" true
+done

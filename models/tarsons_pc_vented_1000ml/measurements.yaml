@@ -1,0 +1,29 @@
+# measurements in cm
+# source_url: https://www.tarsons.com/product/sterile-erlenmeyer-cell-culture-flask-flat-base-pc-with-vented-hdpe-closure/
+# note: total_height and base_diameter are published by Tarsons; neck_diameter and neck_height are modeling assumptions documented below.
+
+manufacturer: Tarsons
+product_line: Sterile Erlenmeyer Cell Culture Flask Flat Base PC with vented HDPE Closure
+catalog_no: 444240
+capacity_ml: 1000
+material: polycarbonate
+closure_material: HDPE
+closure_style: vented_screw_cap
+neck_style: threaded
+base_type: flat
+rimmed_or_capped: capped
+sterile: true
+autoclavable: true
+baffles: false
+source_height_without_closure_mm: 218.0
+source_height_with_closure_mm: 222.2
+source_bottom_outer_diameter_mm: 129.7
+source_inner_neck_diameter_mm: 35.1
+source_closure_size: 45-430
+neck_height_estimate_mm: 40.0
+neck_diameter_model_basis: 45-430 thread finish used as neck OD proxy
+
+total_height: 21.8
+neck_height: 4.0
+base_diameter: 12.97
+neck_diameter: 4.5
