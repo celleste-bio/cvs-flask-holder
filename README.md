@@ -6,7 +6,7 @@ This project provides a **parametric, 3D-printable model** of the CVS apparatus 
 
 ## Specification Tracking
 
-Manufacturer-backed flask specification tracking lives in [docs/erlenmeyer-specifications.csv](/root/cvs-flask-holder/docs/erlenmeyer-specifications.csv) with supporting notes in [docs/erlenmeyer-spec-sources.md](/root/cvs-flask-holder/docs/erlenmeyer-spec-sources.md).
+Manufacturer-backed flask specification tracking lives in [specifications/erlenmeyer-specifications.csv](/root/cvs-flask-holder/specifications/erlenmeyer-specifications.csv) with supporting notes in [specifications/erlenmeyer-spec-sources.md](/root/cvs-flask-holder/specifications/erlenmeyer-spec-sources.md).
 
 The current tracked manufacturer-specific plastic capped line is:
 

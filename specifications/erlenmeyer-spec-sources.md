@@ -1,6 +1,6 @@
 # Erlenmeyer Specification Tracking
 
-This repository now tracks manufacturer-backed Erlenmeyer flask specifications in [erlenmeyer-specifications.csv](/root/cvs-flask-holder/docs/erlenmeyer-specifications.csv).
+This repository now tracks manufacturer-backed Erlenmeyer flask specifications in [erlenmeyer-specifications.csv](/root/cvs-flask-holder/specifications/erlenmeyer-specifications.csv).
 
 ## Primary Modeling Source
 
