@@ -113,6 +113,12 @@ make
 ```
 *(Note: The container includes a PrusaSlicer AppImage)*
 
+**Package Tarsons Release Files:**
+```bash
+./scripts/package_tarsons_pc_vented.sh
+```
+This creates a `distribution/` directory and `.tar.gz` archive containing the final STL/BGCODE files plus a manifest that maps each file to manufacturer, catalog number, capacity, and source specifications.
+
 ## Repository Structure
 
 - **`source/`**: Lua scripts replaced `parametric/` that define the parametric 3D geometry.
@@ -206,6 +212,10 @@ Use the provided shell scripts (ensure they are executable: `chmod +x *.sh`):
 - **Slice All** (Requires PrusaSlicer CLI configuration):
   ```bash
   ./scripts/slice_all.sh
+  ```
+- **Package Manufacturer-Tracked Tarsons Outputs**:
+  ```bash
+  ./scripts/package_tarsons_pc_vented.sh
   ```
 
 ## License
