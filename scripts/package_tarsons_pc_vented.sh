@@ -103,10 +103,9 @@ for dir in $MODEL_GLOB; do
 
     mkdir -p "$model_output_dir"
     cp "$measurements_file" "$model_output_dir/"
-    cp "$dir/flask.scad" "$model_output_dir/"
-    cp "$dir/holder.scad" "$model_output_dir/"
+    cp "$dir/flask.stl" "$model_output_dir/"
     cp "$dir/holder.stl" "$model_output_dir/"
-    cp "$dir/holder_with_flask.scad" "$model_output_dir/"
+    cp "$dir/holder_with_flask.stl" "$model_output_dir/"
 
     if [ -f "$dir/holder.bgcode" ]; then
         cp "$dir/holder.bgcode" "$model_output_dir/"
@@ -150,7 +149,9 @@ cat >> "$PACKAGE_README" <<'EOF'
 - `source-specifications.csv`: filtered copy of the repository specification tracker for this Tarsons family
 - `source-specifications-notes.md`: modeling notes describing what was published by the manufacturer and what remains an assumption
 - `models/<model_id>/measurements.yaml`: per-model dimension record with source and assumption fields
-- `models/<model_id>/holder.stl`: printable geometry
+- `models/<model_id>/flask.stl`: printable flask geometry
+- `models/<model_id>/holder.stl`: printable holder geometry
+- `models/<model_id>/holder_with_flask.stl`: combined preview geometry
 - `models/<model_id>/holder.bgcode`: sliced print file when available
 
 ## Interpretation Notes

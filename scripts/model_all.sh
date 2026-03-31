@@ -1,6 +1,12 @@
 #!/bin/bash
 set -e
 
+LUAMETRY_BIN="${LUAMETRY_BIN:-/home/bensiv/Projects/luametry/bin/luametry}"
+if [ ! -x "$LUAMETRY_BIN" ]; then
+    echo "Luametry binary not found at $LUAMETRY_BIN" >&2
+    exit 1
+fi
+
 find models -mindepth 1 -maxdepth 1 -type d | sort | while read -r dir; do
     measurements="$dir/measurements.yaml"
 
@@ -11,7 +17,7 @@ find models -mindepth 1 -maxdepth 1 -type d | sort | while read -r dir; do
     name=$(basename "$dir")
     echo "$name"
 
-    lua source/flask.lua "$measurements" "$dir/flask.scad"
-    lua source/holder.lua "$measurements" "$dir/holder.scad"
-    lua source/holder.lua "$measurements" "$dir/holder_with_flask.scad" true
+    CVS_MEASUREMENTS="$measurements" "$LUAMETRY_BIN" export source/flask.lua -o "$dir/flask.stl"
+    CVS_MEASUREMENTS="$measurements" "$LUAMETRY_BIN" export source/holder.lua -o "$dir/holder.stl"
+    CVS_MEASUREMENTS="$measurements" CVS_WITH_FLASK=true "$LUAMETRY_BIN" export source/holder.lua -o "$dir/holder_with_flask.stl"
 done

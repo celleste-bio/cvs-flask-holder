@@ -3,7 +3,7 @@
 // - holder only at y = 22
 // - holder with flask at y = 0
 // - flask only at y = -22
-
+translate([0, 160, 0]){
 // Row 1
 translate([0, 22, 0]) {
     // 100 ml holder
@@ -122,4 +122,5 @@ translate([48, -174, 0]) {
 translate([48, -196, 0]) {
     // Tarsons PC vented 2000 ml flask
     include <../models/tarsons_pc_vented_2000ml/flask.scad>
+}
 }

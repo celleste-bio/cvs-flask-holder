@@ -66,21 +66,19 @@ Standard flask markings are notoriously inaccurate (5-10% error margin) and desi
 ## Prerequisites
 
 To use and generate these models, you need:
-1.  **Lua** (5.1 or later)
-2.  **OpenSCAD** (for rendering)
+1.  **Luametry** (built from `~/Projects/luametry`)
+2.  **Luam** language runtime (dependency of Luametry from `~/Projects/luam`)
 3.  **Git** (to manage dependencies)
 
 ## Installation
 
-Clone the repository and initialize the submodules:
+Clone the repository:
 
 ```bash
 git clone <repository-url>
 cd erlenmeyer-holders
-git submodule update --init --recursive
 ```
-
-This will pull the necessary dependencies (`lua-utils` and `lua-openscad`) into the `dependencies/` directory.
+Luametry and lua-utils are expected at `~/Projects/luametry` and `~/Projects/lua-utils`.
 
 ## Deployment / Reproduction
 
@@ -121,14 +119,14 @@ This creates a `distribution/` directory and `.tar.gz` archive containing the fi
 
 ## Repository Structure
 
-- **`source/`**: Lua scripts replaced `parametric/` that define the parametric 3D geometry.
+- **`source/`**: Luametry scripts that define the parametric 3D geometry.
     - `flask.lua`: Generates the flask shape.
     - `holder.lua`: Generates the holder apparatus.
 - **`scripts/`**: Helper shell scripts for batch processing.
 - **`models/`**: Contains configuration and generated files for specific flask sizes.
     - **`[size]ml/`** (e.g., `100ml/`, `250ml/`):
         - `measurements.yaml`: Definition of flask dimensions.
-        - `*.scad`: Generated OpenSCAD files.
+        - `*.stl`: Generated Luametry meshes.
 - **`publications/`**: Files for generating the scientific paper documentation (PDF).
 
 - **`dependencies/`**: Local dependencies (submodules).
@@ -180,22 +178,25 @@ neck_diameter: 3.7  # cm (without rim)
 ```
 
 ### 2. Generate Models
-Use Lua to run the parametric scripts.
+Use Luametry to run the parametric scripts. The scripts read the measurements YAML from the `CVS_MEASUREMENTS` environment variable.
 
 **Generate a Flask Model:**
 ```bash
-lua source/flask.lua models/100ml/measurements.yaml models/100ml/flask.scad
+CVS_MEASUREMENTS=models/100ml/measurements.yaml \
+  /home/bensiv/Projects/luametry/bin/luametry export source/flask.lua -o models/100ml/flask.stl
 ```
 
 **Generate a Holder Model:**
 ```bash
-lua source/holder.lua models/100ml/measurements.yaml models/100ml/holder.scad
+CVS_MEASUREMENTS=models/100ml/measurements.yaml \
+  /home/bensiv/Projects/luametry/bin/luametry export source/holder.lua -o models/100ml/holder.stl
 ```
 
 **Generate a Holder with Flask Visualization:**
 ```bash
-# The 'true' argument adds a visual ghost of the flask to check fit
-lua source/holder.lua models/100ml/measurements.yaml models/100ml/holder_with_flask.scad true
+# Set CVS_WITH_FLASK to include the flask geometry for fit checks
+CVS_MEASUREMENTS=models/100ml/measurements.yaml CVS_WITH_FLASK=true \
+  /home/bensiv/Projects/luametry/bin/luametry export source/holder.lua -o models/100ml/holder_with_flask.stl
 ```
 
 ### 3. Batch Processing
