@@ -5,41 +5,41 @@
 // - flask only at y = -22
 
 translate([0, 22, 0]) {
-    include <../models/100ml/holder.scad>
+    import("../models/100ml/holder.stl");
 }
 translate([0, 0, 0]) {
-    include <../models/100ml/holder_with_flask.scad>
+    import("../models/100ml/holder_with_flask.stl");
 }
 translate([0, -22, 0]) {
-    include <../models/100ml/flask.scad>
+    import("../models/100ml/flask.stl");
 }
 
 translate([24, 22, 0]) {
-    include <../models/250ml/holder.scad>
+    import("../models/250ml/holder.stl");
 }
 translate([24, 0, 0]) {
-    include <../models/250ml/holder_with_flask.scad>
+    import("../models/250ml/holder_with_flask.stl");
 }
 translate([24, -22, 0]) {
-    include <../models/250ml/flask.scad>
+    import("../models/250ml/flask.stl");
 }
 
 translate([48, 22, 0]) {
-    include <../models/500ml/holder.scad>
+    import("../models/500ml/holder.stl");
 }
 translate([48, 0, 0]) {
-    include <../models/500ml/holder_with_flask.scad>
+    import("../models/500ml/holder_with_flask.stl");
 }
 translate([48, -22, 0]) {
-    include <../models/500ml/flask.scad>
+    import("../models/500ml/flask.stl");
 }
 
 translate([72, 22, 0]) {
-    include <../models/1000ml/holder.scad>
+    import("../models/1000ml/holder.stl");
 }
 translate([72, 0, 0]) {
-    include <../models/1000ml/holder_with_flask.scad>
+    import("../models/1000ml/holder_with_flask.stl");
 }
 translate([72, -22, 0]) {
-    include <../models/1000ml/flask.scad>
+    import("../models/1000ml/flask.stl");
 }
