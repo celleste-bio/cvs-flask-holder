@@ -203,7 +203,11 @@ function erlenmeyer_holder(dims, angle, thickness, tolerance)
 
     -- 5. Ruler Plate (Connector)
     local ruller_width_adjustment = tolerance / math.sin(math.rad(skel.diagonal))
-    local ruller_plate = cad.right_angle_triangle(neck_rest_body_height - thickness, dims.chest_height - thickness - hpro(thickness, -angle) - ruller_width_adjustment, thickness)
+    local ruller_plate_height = neck_rest_body_height - thickness
+    local ruller_plate_length = dims.chest_height - thickness - hpro(thickness, -angle) - ruller_width_adjustment
+    local ruller_plate_clearance = thickness + tolerance
+    local ruller_plate_scale = math.max((ruller_plate_height - ruller_plate_clearance) / ruller_plate_height, thickness / ruller_plate_height)
+    local ruller_plate = cad.right_angle_triangle(ruller_plate_height * ruller_plate_scale, ruller_plate_length * ruller_plate_scale, thickness)
     ruller_plate = cad.transform("rotate", ruller_plate, {0, 270, 0})
     ruller_plate = cad.transform("translate", ruller_plate, {skel.base_radius, thickness, thickness})
 
