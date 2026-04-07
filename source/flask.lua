@@ -1,23 +1,10 @@
 -- Luametry entry: build the flask model from a measurements YAML.
 
 script_dir = string.match(debug.getinfo(1).source, "@(.*[/\\])") or "./"
-repo_root = script_dir .. "../"
-projects_root = repo_root .. "../"
+bootstrap = dofile(script_dir .. "bootstrap.lua")
+bootstrap.configure_imports(script_dir)
 
-function add_path(path)
-    if path == nil then return end
-    if string.sub(path, -1) == "/" or string.sub(path, -1) == "\\" then
-        path = string.sub(path, 1, -2)
-    end
-    package.path = path .. "/?.lua;" .. package.path
-end
-
-add_path(script_dir)
-add_path(repo_root .. "source")
-add_path(projects_root .. "luametry/src")
-add_path(projects_root .. "luam/lib")
-
-const utils = require("utils")
+const utils = require("lib.utils")
 const flask_geom = require("flask_geom")
 
 function resolve_measurements_path()

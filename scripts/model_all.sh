@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-LUAMETRY_BIN="${LUAMETRY_BIN:-/home/bensiv/Projects/luametry/bin/luametry}"
+LUAMETRY_BIN="${LUAMETRY_BIN:-$HOME/projects/luametry/bin/luametry}"
 if [ ! -x "$LUAMETRY_BIN" ]; then
     echo "Luametry binary not found at $LUAMETRY_BIN" >&2
     exit 1

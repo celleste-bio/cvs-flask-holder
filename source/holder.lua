@@ -1,23 +1,10 @@
 -- Luametry entry: build the holder model from a measurements YAML.
 
 script_dir = string.match(debug.getinfo(1).source, "@(.*[/\\])") or "./"
-repo_root = script_dir .. "../"
-projects_root = repo_root .. "../"
+bootstrap = dofile(script_dir .. "bootstrap.lua")
+bootstrap.configure_imports(script_dir)
 
-function add_path(path)
-    if path == nil then return end
-    if string.sub(path, -1) == "/" or string.sub(path, -1) == "\\" then
-        path = string.sub(path, 1, -2)
-    end
-    package.path = path .. "/?.lua;" .. package.path
-end
-
-add_path(script_dir)
-add_path(repo_root .. "source")
-add_path(projects_root .. "luametry/src")
-add_path(projects_root .. "luam/lib")
-
-const utils = require("utils")
+const utils = require("lib.utils")
 const cad = require("cad")
 const flask_geom = require("flask_geom")
 
@@ -165,7 +152,9 @@ function erlenmeyer_holder(dims, angle, thickness, tolerance)
 
     -- 5. Ruler Plate (Connector)
     ruller_width_adjustment = tolerance / math.sin(math.rad(skel.diagonal))
-    ruller_plate = right_angle_triangle(neck_rest_body_height - thickness, dims.chest_height - thickness - hpro(thickness, -angle) - ruller_width_adjustment, thickness)
+    ruller_plate_clearance = thickness + tolerance
+    ruller_plate_height = math.max(neck_rest_body_height - thickness - ruller_plate_clearance, thickness)
+    ruller_plate = right_angle_triangle(ruller_plate_height, dims.chest_height - thickness - hpro(thickness, -angle) - ruller_width_adjustment, thickness)
     ruller_plate = cad.modify.rotate(ruller_plate, {0, 270, 0})
     ruller_plate = cad.modify.translate(ruller_plate, {skel.base_radius, thickness, thickness})
 
