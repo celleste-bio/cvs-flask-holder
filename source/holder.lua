@@ -22,6 +22,29 @@ local function vpro(length, angle)
     return length * math.sin(math.rad(angle))
 end
 
+local function scad_string(value)
+    return string.format("%q", value)
+end
+
+local function get_commit_id()
+    local repo_dir = joinpath(get_script_dir(), "..")
+    local command = string.format("git -C %s rev-parse --short=7 HEAD 2>/dev/null", scad_string(repo_dir))
+    local handle = io.popen(command)
+    if not handle then
+        return "manual"
+    end
+
+    local commit_id = handle:read("*a") or ""
+    handle:close()
+    commit_id = commit_id:gsub("%s+$", "")
+
+    if commit_id == "" then
+        return "manual"
+    end
+
+    return commit_id
+end
+
 --------------------------------------------------------------------------------
 -- SKELETON CALCULATOR
 -- Single Source of Truth for all geometric positions
@@ -80,6 +103,13 @@ local function calculate_skeleton(dims, angle, thickness, tolerance)
         y = s.base_center.y + dims.body_height * s.axis_y_comp,
         z = s.base_center.z + dims.body_height * s.axis_z_comp
     }
+
+    -- Extend the holder slightly past the exact neck start by tolerance.
+    s.neck_rest_target = {
+        x = s.shoulder.x,
+        y = s.shoulder.y + tolerance * s.axis_y_comp,
+        z = s.shoulder.z + tolerance * s.axis_z_comp
+    }
     
     -- 6. Key Point: NECK END (Rim)
     -- Distance along axis = body_height + neck_height
@@ -123,12 +153,11 @@ function erlenmeyer_holder(dims, angle, thickness, tolerance)
     -- B. Neck Rest Body (The vertical tower)
     -- Height: Calculated to support the neck exactly at the correct Z level.
     
-    -- Let's simply fix the Body Height to be "The Z height of the bottom of the tilted neck".
-    -- Lowest point of neck at shoulder = skel.shoulder.z - skel.vertical_radius_neck
-    local neck_bottom_z_at_shoulder = skel.shoulder.z - skel.vertical_radius_neck
+    -- Support the neck slightly past the exact shoulder using the tolerance extension.
+    local neck_bottom_z_at_target = skel.neck_rest_target.z - skel.vertical_radius_neck
     
     -- Set Body Height to support this, minus tolerance.
-    local neck_rest_body_height = round(neck_bottom_z_at_shoulder - tolerance - thickness, 4)
+    local neck_rest_body_height = round(neck_bottom_z_at_target - tolerance - thickness, 4)
     
     -- Head Height (Thickness of the clamp):
     -- Keep original design: proportional to radius.
@@ -149,7 +178,9 @@ function erlenmeyer_holder(dims, angle, thickness, tolerance)
     -- Defined entirely by Skeleton. We create a cylinder along the `skel.axis`.
     
     -- Cutout properties
-    local cutout_radius = skel.neck_radius + tolerance
+    local neck_rest_tolerance = tolerance
+    local top_entry_scale = 1.2
+    local cutout_radius = skel.neck_radius + neck_rest_tolerance
     local cutout_height_len = dims.neck_height * 2 -- Make it long enough to cut through everything
     local cutout = cad.create("cylinder", {h=cutout_height_len, r1=cutout_radius, r2=cutout_radius})
     
@@ -159,9 +190,9 @@ function erlenmeyer_holder(dims, angle, thickness, tolerance)
     
     -- Translate to Shoulder position minus a shift to ensure it cuts through the start.
     local start_shift = dims.neck_height * 0.5
-    local start_x = skel.shoulder.x
-    local start_y = skel.shoulder.y - start_shift * skel.axis_y_comp
-    local start_z = skel.shoulder.z - start_shift * skel.axis_z_comp
+    local start_x = skel.neck_rest_target.x
+    local start_y = skel.neck_rest_target.y - start_shift * skel.axis_y_comp
+    local start_z = skel.neck_rest_target.z - start_shift * skel.axis_z_comp
     
     -- Lower the cutout to match the lowered body height and ensure deep fit
     start_z = start_z - thickness
@@ -172,7 +203,7 @@ function erlenmeyer_holder(dims, angle, thickness, tolerance)
     -- We simulate the user dropping the flask in.
     -- Move a copy of the cutout "Up" (Normal to axis? Or vertical?).
     -- Usually "Up" in world space for a drop-in holder.
-    local cutout_top = cad.create("cylinder", {h=cutout_height_len, r1=cutout_radius*1.4, r2=cutout_radius*1.4})
+    local cutout_top = cad.create("cylinder", {h=cutout_height_len, r1=cutout_radius * top_entry_scale, r2=cutout_radius * top_entry_scale})
     cutout_top = cad.transform("rotate", cutout_top, {skel.diagonal, 0, 0})
     
     -- Lift top cutout upward by `neck_radius`.
@@ -211,8 +242,28 @@ function erlenmeyer_holder(dims, angle, thickness, tolerance)
     ruller_plate = cad.transform("rotate", ruller_plate, {0, 270, 0})
     ruller_plate = cad.transform("translate", ruller_plate, {skel.base_radius, thickness, thickness})
 
+    -- 6. Commit ID Marking
+    local commit_id = get_commit_id()
+    local id_text = cad.create("text", {
+        text = scad_string(commit_id),
+        size = round(base_width * 0.22, 4),
+        halign = scad_string("center"),
+        valign = scad_string("center")
+    })
+    local id_mark = {
+        linear_extrude = {
+            params = {height = round(math.max(thickness * 0.35, 0.6), 4)},
+            inputs = {id_text}
+        }
+    }
+    id_mark = cad.transform("translate", id_mark, {
+        dims.base_diameter / 2,
+        round(total_length * 0.18, 4),
+        thickness
+    })
+
     -- Combine everything
-    local result = cad.boolean("union", {base, base_rest, neck_rest, ruller_plate})
+    local result = cad.boolean("union", {base, base_rest, neck_rest, ruller_plate, id_mark})
 
     return result
 end
