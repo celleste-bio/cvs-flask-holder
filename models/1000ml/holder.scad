@@ -59,7 +59,12 @@ difference() {
     };
     translate([4.5973, 1.0401, -0.1]) {
         linear_extrude(height=0.64) {
-            text(valign="center", text="4627203", halign="right", size=0.78);
+            text(valign="center", text="a37aecc", halign="right", size=0.78);
+        };
+    };
+    translate([4.0693, 15.6021, -0.1]) {
+        linear_extrude(height=0.64) {
+            text(valign="center", text="G1KO1", halign="left", size=0.78);
         };
     };
 };

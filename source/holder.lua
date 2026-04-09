@@ -45,6 +45,15 @@ local function get_commit_id()
     return commit_id
 end
 
+local function get_engraving_id(dims)
+    local engraving_id = dims.engraving_id or dims.flask_id
+    if not engraving_id or engraving_id == "" then
+        error("measurements.yaml must define engraving_id or flask_id for holder engraving")
+    end
+
+    return tostring(engraving_id)
+end
+
 --------------------------------------------------------------------------------
 -- SKELETON CALCULATOR
 -- Single Source of Truth for all geometric positions
@@ -242,7 +251,7 @@ function erlenmeyer_holder(dims, angle, thickness, tolerance)
     ruller_plate = cad.transform("rotate", ruller_plate, {0, 270, 0})
     ruller_plate = cad.transform("translate", ruller_plate, {skel.base_radius, thickness, thickness})
 
-    -- 6. Commit ID Marking
+    -- 6. Provenance Markings
     local commit_id = get_commit_id()
     local id_text_size = round(base_width * 0.18, 4)
     local id_edge_margin = round(math.max(thickness * 0.6, tolerance * 8), 4)
@@ -265,9 +274,28 @@ function erlenmeyer_holder(dims, angle, thickness, tolerance)
         -0.1
     })
 
-    -- Combine everything, then cut the commit ID fully through the top-left base leg.
+    local flask_engraving = get_engraving_id(dims)
+    local flask_text = cad.create("text", {
+        text = scad_string(flask_engraving),
+        size = id_text_size,
+        halign = scad_string("left"),
+        valign = scad_string("center")
+    })
+    local flask_mark = {
+        linear_extrude = {
+            params = {height = id_engrave_depth},
+            inputs = {flask_text}
+        }
+    }
+    flask_mark = cad.transform("translate", flask_mark, {
+        round(base_width - id_edge_margin, 4),
+        round(total_length - (neck_rest_base_length / 2), 4),
+        -0.1
+    })
+
+    -- Combine everything, then cut both provenance marks through the two base tabs.
     local result = cad.boolean("union", {base, base_rest, neck_rest, ruller_plate})
-    result = cad.boolean("difference", {result, id_mark})
+    result = cad.boolean("difference", {result, id_mark, flask_mark})
 
     return result
 end

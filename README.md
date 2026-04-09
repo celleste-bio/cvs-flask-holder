@@ -8,6 +8,14 @@ This project provides a **parametric, 3D-printable model** of the CVS apparatus 
 
 Manufacturer-backed flask specification tracking lives in [specifications/erlenmeyer-specifications.csv](/root/cvs-flask-holder/specifications/erlenmeyer-specifications.csv) with supporting notes in [specifications/erlenmeyer-spec-sources.md](/root/cvs-flask-holder/specifications/erlenmeyer-spec-sources.md).
 
+Project documentation lives in `documentation/`:
+
+- [project-overview.md](/root/cvs-flask-holder/documentation/project-overview.md)
+- [repo-map.md](/root/cvs-flask-holder/documentation/repo-map.md)
+- [workflows.md](/root/cvs-flask-holder/documentation/workflows.md)
+- [holder-traceability.md](/root/cvs-flask-holder/documentation/holder-traceability.md)
+- [flask-id-index.md](/root/cvs-flask-holder/documentation/flask-id-index.md)
+
 The current tracked manufacturer-specific plastic capped line is:
 
 - Tarsons sterile flat-base polycarbonate Erlenmeyer cell culture flasks with vented HDPE closure
@@ -160,6 +168,14 @@ For manufacturer-specific folders, keep two things separate:
 
 - published dimensions copied directly from the source
 - modeling assumptions needed by this geometry, such as outer neck diameter when a vendor only publishes inner neck diameter
+
+For traceability, each `measurements.yaml` should also define:
+
+- `flask_id`: full canonical ID for manifests and lookups
+- `engraving_id`: short ID engraved on the printed holder
+- `manufacturer`, `family_code`, `variant_code`, `capacity_ml`, `revision`: normalized metadata used to explain the ID
+
+See [holder-traceability.md](/root/cvs-flask-holder/documentation/holder-traceability.md) for the full provenance and ID documentation.
 
 **Required Measurements:**
 
