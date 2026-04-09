@@ -42,20 +42,50 @@ require_command() {
     fi
 }
 
+get_compare_runner() {
+    if [ -n "${DISPLAY:-}" ] && xdpyinfo >/dev/null 2>&1; then
+        return 0
+    fi
+
+    if command -v xvfb-run >/dev/null 2>&1; then
+        echo "xvfb-run -a"
+        return 0
+    fi
+
+    return 1
+}
+
 render_compare_scenes() {
+    local compare_runner
+
+    if ! compare_runner="$(get_compare_runner)"; then
+        echo "Skipping comparison PNG generation: no DISPLAY and xvfb-run is not available." >&2
+        return 0
+    fi
+
     mkdir -p "$COMPARE_OUTPUT_DIR"
 
     find "$SCRIPT_DIR" -maxdepth 1 -type f -name 'compare*.scad' | sort | while read -r scene; do
         local output
         output="$COMPARE_OUTPUT_DIR/$(basename "${scene%.scad}").png"
         echo "Rendering comparison scene $(basename "$scene") -> $output"
-        openscad \
-            --autocenter \
-            --viewall \
-            --projection=o \
-            --imgsize=2400,1800 \
-            -o "$output" \
-            "$scene"
+        if [ -n "$compare_runner" ]; then
+            $compare_runner openscad \
+                --autocenter \
+                --viewall \
+                --projection=o \
+                --imgsize=2400,1800 \
+                -o "$output" \
+                "$scene"
+        else
+            openscad \
+                --autocenter \
+                --viewall \
+                --projection=o \
+                --imgsize=2400,1800 \
+                -o "$output" \
+                "$scene"
+        fi
     done
 }
 
