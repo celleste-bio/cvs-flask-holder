@@ -104,11 +104,11 @@ local function calculate_skeleton(dims, angle, thickness, tolerance)
         z = s.base_center.z + dims.body_height * s.axis_z_comp
     }
 
-    -- Extend the holder slightly past the exact neck start by tolerance.
+    -- Extend the holder slightly past the exact neck start toward the conical body.
     s.neck_rest_target = {
         x = s.shoulder.x,
-        y = s.shoulder.y + tolerance * s.axis_y_comp,
-        z = s.shoulder.z + tolerance * s.axis_z_comp
+        y = s.shoulder.y - tolerance * s.axis_y_comp,
+        z = s.shoulder.z - tolerance * s.axis_z_comp
     }
     
     -- 6. Key Point: NECK END (Rim)
@@ -153,7 +153,7 @@ function erlenmeyer_holder(dims, angle, thickness, tolerance)
     -- B. Neck Rest Body (The vertical tower)
     -- Height: Calculated to support the neck exactly at the correct Z level.
     
-    -- Support the neck slightly past the exact shoulder using the tolerance extension.
+    -- Support the neck slightly back from the shoulder so the rest catches the conical transition.
     local neck_bottom_z_at_target = skel.neck_rest_target.z - skel.vertical_radius_neck
     
     -- Set Body Height to support this, minus tolerance.
@@ -244,26 +244,30 @@ function erlenmeyer_holder(dims, angle, thickness, tolerance)
 
     -- 6. Commit ID Marking
     local commit_id = get_commit_id()
+    local id_text_size = round(base_width * 0.18, 4)
+    local id_edge_margin = round(math.max(thickness * 0.6, tolerance * 8), 4)
+    local id_engrave_depth = round(thickness + 0.2, 4)
     local id_text = cad.create("text", {
         text = scad_string(commit_id),
-        size = round(base_width * 0.22, 4),
-        halign = scad_string("center"),
+        size = id_text_size,
+        halign = scad_string("right"),
         valign = scad_string("center")
     })
     local id_mark = {
         linear_extrude = {
-            params = {height = round(math.max(thickness * 0.35, 0.6), 4)},
+            params = {height = id_engrave_depth},
             inputs = {id_text}
         }
     }
     id_mark = cad.transform("translate", id_mark, {
-        dims.base_diameter / 2,
-        round(total_length * 0.18, 4),
-        thickness
+        round(base_width + id_edge_margin, 4),
+        round(neck_rest_base_length / 2, 4),
+        -0.1
     })
 
-    -- Combine everything
-    local result = cad.boolean("union", {base, base_rest, neck_rest, ruller_plate, id_mark})
+    -- Combine everything, then cut the commit ID fully through the top-left base leg.
+    local result = cad.boolean("union", {base, base_rest, neck_rest, ruller_plate})
+    result = cad.boolean("difference", {result, id_mark})
 
     return result
 end

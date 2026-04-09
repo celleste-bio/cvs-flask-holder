@@ -213,6 +213,11 @@ Use the provided shell scripts (ensure they are executable: `chmod +x *.sh`):
   ```bash
   ./scripts/slice_all.sh
   ```
+- **Run the Full Pipeline**:
+  ```bash
+  ./scripts/build_all.sh
+  ```
+  This generates SCAD files, renders STL files, slices BGCODE, and exports PNG previews for every `scripts/compare*.scad` scene into `artifacts/compare/`.
 - **Package Manufacturer-Tracked Tarsons Outputs**:
   ```bash
   ./scripts/package_tarsons_pc_vented.sh
