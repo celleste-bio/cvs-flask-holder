@@ -242,48 +242,47 @@ function erlenmeyer_holder(dims, angle, thickness, tolerance)
     local base_rest = cad.boolean("union", {base_rest_base, base_rest_left, base_rest_right})
 
     -- 5. Ruler Plate (Connector)
-    local ruller_width_adjustment = tolerance / math.sin(math.rad(skel.diagonal))
-    local ruller_plate_height = neck_rest_body_height - thickness
-    local ruller_plate_length = dims.chest_height - thickness - hpro(thickness, -angle) - ruller_width_adjustment
-    local ruller_plate_clearance = thickness + tolerance
-    local ruller_plate_scale = math.max((ruller_plate_height - ruller_plate_clearance) / ruller_plate_height, thickness / ruller_plate_height)
-    local ruller_plate = cad.right_angle_triangle(ruller_plate_height * ruller_plate_scale, ruller_plate_length * ruller_plate_scale, thickness)
-    ruller_plate = cad.transform("rotate", ruller_plate, {0, 270, 0})
-    ruller_plate = cad.transform("translate", ruller_plate, {skel.base_radius, thickness, thickness})
+    local ruler_width_adjustment = tolerance / math.sin(math.rad(skel.diagonal))
+    local ruler_plate_height = neck_rest_body_height - thickness
+    local ruler_plate_length = dims.chest_height - thickness - hpro(thickness, -angle) - ruler_width_adjustment
+    local ruler_plate_clearance = thickness + tolerance
+    local ruler_plate_scale = math.max((ruler_plate_height - ruler_plate_clearance) / ruler_plate_height, thickness / ruler_plate_height)
+    local ruler_plate = cad.right_angle_triangle(ruler_plate_height * ruler_plate_scale, ruler_plate_length * ruler_plate_scale, thickness)
+    ruler_plate = cad.transform("rotate", ruler_plate, {0, 270, 0})
+    ruler_plate = cad.transform("translate", ruler_plate, {skel.base_radius, thickness, thickness})
 
-    -- 6. Provenance Markings
+    -- 6. Provenance engravings
     local commit_id = get_commit_id()
-    local id_text_size = round(base_width * 0.18, 4)
-    local id_edge_margin = round(math.max(thickness * 0.6, tolerance * 8), 4)
-    local id_engrave_depth = round(thickness + 0.2, 4)
-    local id_text = cad.create("text", {
+    local mark_text_size = round(base_width * 0.18, 4)
+    local mark_depth = round(thickness + 0.2, 4)
+    local commit_text = cad.create("text", {
         text = scad_string(commit_id),
-        size = id_text_size,
+        size = mark_text_size,
         halign = scad_string("left"),
         valign = scad_string("center")
     })
-    local id_mark = {
+    local commit_mark = {
         linear_extrude = {
-            params = {height = id_engrave_depth},
-            inputs = {id_text}
+            params = {height = mark_depth},
+            inputs = {commit_text}
         }
     }
-    id_mark = cad.transform("translate", id_mark, {
-        round(id_edge_margin, 4),
+    commit_mark = cad.transform("translate", commit_mark, {
+        round(thickness, 4),
         round(neck_rest_base_length / 2, 4),
         -0.1
     })
 
-    local flask_engraving = get_engraving_id(dims)
+    local flask_id = get_engraving_id(dims)
     local flask_text = cad.create("text", {
-        text = scad_string(flask_engraving),
-        size = id_text_size,
+        text = scad_string(flask_id),
+        size = mark_text_size,
         halign = scad_string("left"),
         valign = scad_string("center")
     })
     local flask_mark = {
         linear_extrude = {
-            params = {height = id_engrave_depth},
+            params = {height = mark_depth},
             inputs = {flask_text}
         }
     }
@@ -294,8 +293,8 @@ function erlenmeyer_holder(dims, angle, thickness, tolerance)
     })
 
     -- Combine everything, then cut both provenance marks through the two base tabs.
-    local result = cad.boolean("union", {base, base_rest, neck_rest, ruller_plate})
-    result = cad.boolean("difference", {result, id_mark, flask_mark})
+    local result = cad.boolean("union", {base, base_rest, neck_rest, ruler_plate})
+    result = cad.boolean("difference", {result, commit_mark, flask_mark})
 
     return result
 end
