@@ -267,8 +267,9 @@ function erlenmeyer_holder(dims, angle, thickness, tolerance)
             inputs = {commit_text}
         }
     }
+    commit_mark = cad.transform("rotate", commit_mark, {0, 0, 180})
     commit_mark = cad.transform("translate", commit_mark, {
-        round(thickness, 4),
+        round(base_width, 4),
         round(neck_rest_base_length / 2, 4),
         -0.1
     })
@@ -286,8 +287,9 @@ function erlenmeyer_holder(dims, angle, thickness, tolerance)
             inputs = {flask_text}
         }
     }
+    flask_mark = cad.transform("rotate", flask_mark, {0, 0, 180})
     flask_mark = cad.transform("translate", flask_mark, {
-        round(base_width * 2, 4),
+        round(dims.base_diameter - thickness, 4),
         round(neck_rest_base_length / 2, 4),
         -0.1
     })
