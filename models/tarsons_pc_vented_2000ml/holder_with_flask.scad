@@ -57,14 +57,18 @@ difference() {
             };
         };
     };
-    translate([5.6107, 1.3313, -0.1]) {
-        linear_extrude(height=0.74) {
-            text(valign="center", text="a37aecc", halign="right", size=0.9516);
+    translate([5.2867, 1.3313, -0.1]) {
+        rotate([0, 0, 180]) {
+            linear_extrude(height=0.74) {
+                text(valign="center", text="44d1d94", halign="left", size=0.9516);
+            };
         };
     };
-    translate([4.9627, 19.9692, -0.1]) {
-        linear_extrude(height=0.74) {
-            text(valign="center", text="T2KV1", halign="left", size=0.9516);
+    translate([15.32, 1.3313, -0.1]) {
+        rotate([0, 0, 180]) {
+            linear_extrude(height=0.74) {
+                text(valign="center", text="T2KV1", halign="left", size=0.9516);
+            };
         };
     };
 };
