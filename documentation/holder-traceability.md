@@ -9,6 +9,8 @@ Each holder is intended to carry two engraved identifiers:
 - Git commit hash: identifies the code revision that generated the holder geometry
 - `engraving_id`: identifies the intended flask model in a compact print-friendly format
 
+Both markings are engraved into the two front base tabs so they remain visible from the same viewing side of the printed holder.
+
 The engraved flask code is short on purpose. The full source-of-truth identity and supporting metadata live in the corresponding `measurements.yaml` file.
 
 ## Metadata Layers
@@ -83,7 +85,7 @@ catalog_no: 444220
 ## How To Trace A Printed Holder
 
 1. Read the Git commit engraving from the holder.
-2. Read the short `engraving_id` from the opposite side.
+2. Read the short `engraving_id` from the adjacent front tab.
 3. Look up the short ID in [flask-id-index.md](/root/cvs-flask-holder/documentation/flask-id-index.md).
 4. Open the corresponding `models/.../measurements.yaml` file.
 5. Use `flask_id`, source fields, and notes to recover the exact modeled flask definition.

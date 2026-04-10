@@ -259,7 +259,7 @@ function erlenmeyer_holder(dims, angle, thickness, tolerance)
     local id_text = cad.create("text", {
         text = scad_string(commit_id),
         size = id_text_size,
-        halign = scad_string("right"),
+        halign = scad_string("left"),
         valign = scad_string("center")
     })
     local id_mark = {
@@ -269,7 +269,7 @@ function erlenmeyer_holder(dims, angle, thickness, tolerance)
         }
     }
     id_mark = cad.transform("translate", id_mark, {
-        round(base_width + id_edge_margin, 4),
+        round(id_edge_margin, 4),
         round(neck_rest_base_length / 2, 4),
         -0.1
     })
@@ -288,8 +288,8 @@ function erlenmeyer_holder(dims, angle, thickness, tolerance)
         }
     }
     flask_mark = cad.transform("translate", flask_mark, {
-        round(base_width - id_edge_margin, 4),
-        round(total_length - (neck_rest_base_length / 2), 4),
+        round(base_width * 2, 4),
+        round(neck_rest_base_length / 2, 4),
         -0.1
     })
 

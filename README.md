@@ -177,6 +177,8 @@ For traceability, each `measurements.yaml` should also define:
 
 See [holder-traceability.md](/root/cvs-flask-holder/documentation/holder-traceability.md) for the full provenance and ID documentation.
 
+The printed holder carries both provenance engravings on the two front base tabs: the Git commit hash on one tab and the short `engraving_id` on the other.
+
 **Required Measurements:**
 
 - **`total_height`**: Absolute height from base to top of rim.
