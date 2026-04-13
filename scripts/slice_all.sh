@@ -2,9 +2,17 @@
 set -e
 
 # Profiles
-PRINTER="${PRINTER:-Original Prusa MK4 0.4 nozzle}"
-PRINT_PROFILE="${PRINT_PROFILE:-0.20mm SPEED @MK4 0.4}"
-MATERIAL="${MATERIAL:-Generic PLA @PG}"
+PRINTER="${PRINTER:-Original Prusa i3 MK3S & MK3S+ 0.4 nozzle}"
+PRINT_PROFILE="${PRINT_PROFILE:-0.20mm QUALITY @MK3}"
+MATERIAL="${MATERIAL:-Generic PLA}"
+NOZZLE_TEMP="${NOZZLE_TEMP:-215}"
+BED_TEMP="${BED_TEMP:-60}"
+BRIM_WIDTH="${BRIM_WIDTH:-8}"
+INFILL_DENSITY="${INFILL_DENSITY:-15%}"
+BRIDGE_SPEED="${BRIDGE_SPEED:-25}"
+PERIMETER_SPEED="${PERIMETER_SPEED:-40}"
+SMALL_PERIMETER_SPEED="${SMALL_PERIMETER_SPEED:-20}"
+EXTERNAL_PERIMETER_SPEED="${EXTERNAL_PERIMETER_SPEED:-25}"
 FLATPAK_APP_ID="com.prusa3d.PrusaSlicer"
 
 SLICER_CMD=()
@@ -146,8 +154,16 @@ find models -name "holder.stl" | sort | while read -r file; do
     "${SLICER_ENV[@]}" "${SLICER_CMD[@]}" "${SLICER_ARGS[@]}" -g "$file" \
       -o "${dir}/holder.gcode" \
       --scale 10 \
-      --fill-density 15% \
-      --brim-width 5 \
+      --fill-density "$INFILL_DENSITY" \
+      --brim-width "$BRIM_WIDTH" \
+      --temperature "$NOZZLE_TEMP" \
+      --first-layer-temperature "$NOZZLE_TEMP" \
+      --bed-temperature "$BED_TEMP" \
+      --first-layer-bed-temperature "$BED_TEMP" \
+      --bridge-speed "$BRIDGE_SPEED" \
+      --perimeter-speed "$PERIMETER_SPEED" \
+      --small-perimeter-speed "$SMALL_PERIMETER_SPEED" \
+      --external-perimeter-speed "$EXTERNAL_PERIMETER_SPEED" \
       --center 125,105
     #   --binary-gcode
       
