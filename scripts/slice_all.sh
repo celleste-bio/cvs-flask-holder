@@ -144,14 +144,14 @@ find models -name "holder.stl" | sort | while read -r file; do
     echo "Slicing $size model from $file..."
 
     "${SLICER_ENV[@]}" "${SLICER_CMD[@]}" "${SLICER_ARGS[@]}" -g "$file" \
-      -o "${dir}/holder.bgcode" \
+      -o "${dir}/holder.gcode" \
       --scale 10 \
       --fill-density 15% \
       --brim-width 5 \
-      --center 125,105 \
-      --binary-gcode
+      --center 125,105
+    #   --binary-gcode
       
-    echo "Exported to ${dir}/holder.bgcode"
+    echo "Exported to ${dir}/holder.gcode"
 done
 
 echo "----------------------------------------"

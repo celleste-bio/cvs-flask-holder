@@ -8,9 +8,9 @@ OUTPUT_DIR="${1:-$HOME/documents/3d-models/release_${RELEASE_DATE}}"
 
 usage() {
     cat <<'EOF'
-Usage: ./scripts/distribute_bgcode.sh [output_dir]
+Usage: ./scripts/distribute_gcode.sh [output_dir]
 
-Copy each model's holder BGCODE file into a release directory and rename it
+Copy each model's holder GCODE file into a release directory and rename it
 using the short engraved model ID from measurements.yaml.
 
 Defaults:
@@ -45,9 +45,9 @@ mkdir -p "$OUTPUT_DIR"
 
 find models -mindepth 1 -maxdepth 1 -type d | sort | while read -r dir; do
     measurements="$dir/measurements.yaml"
-    bgcode="$dir/holder.bgcode"
+    gcode="$dir/holder.gcode"
 
-    if [ ! -f "$measurements" ] || [ ! -f "$bgcode" ]; then
+    if [ ! -f "$measurements" ] || [ ! -f "$gcode" ]; then
         continue
     fi
 
@@ -57,8 +57,8 @@ find models -mindepth 1 -maxdepth 1 -type d | sort | while read -r dir; do
         continue
     fi
 
-    cp "$bgcode" "$OUTPUT_DIR/$short_id.bgcode"
-    echo "Copied $(basename "$dir")/holder.bgcode -> $OUTPUT_DIR/$short_id.bgcode"
+    cp "$gcode" "$OUTPUT_DIR/$short_id.gcode"
+    echo "Copied $(basename "$dir")/holder.gcode -> $OUTPUT_DIR/$short_id.gcode"
 done
 
 echo "Release directory created: $OUTPUT_DIR"
