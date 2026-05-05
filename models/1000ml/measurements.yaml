@@ -1,5 +1,13 @@
 # measurements in cm
 
+flask_id: generic-erlenmeyer-1000-open-v1
+engraving_id: G1KO1
+manufacturer: Generic
+family_code: erlenmeyer
+variant_code: open
+capacity_ml: 1000
+revision: 1
+
 total_height: 22.0
 neck_height: 4.5
 base_diameter: 13.0

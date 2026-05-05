@@ -2,10 +2,15 @@
 # source_url: https://www.tarsons.com/product/sterile-erlenmeyer-cell-culture-flask-flat-base-pc-with-vented-hdpe-closure/
 # note: total_height and base_diameter are published by Tarsons; neck_diameter and neck_height are modeling assumptions documented below.
 
+flask_id: tarsons-cellculture-0500-vented-v1
+engraving_id: T500V1
 manufacturer: Tarsons
+family_code: cellculture
+variant_code: vented
+capacity_ml: 500
+revision: 1
 product_line: Sterile Erlenmeyer Cell Culture Flask Flat Base PC with vented HDPE Closure
 catalog_no: 444230
-capacity_ml: 500
 material: polycarbonate
 closure_material: HDPE
 closure_style: vented_screw_cap

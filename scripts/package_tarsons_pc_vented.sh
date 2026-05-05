@@ -34,7 +34,7 @@ PACKAGE_MANIFEST="$OUTPUT_DIR/manifest.csv"
 PACKAGE_SPECS="$OUTPUT_DIR/source-specifications.csv"
 
 cat > "$PACKAGE_MANIFEST" <<'EOF'
-model_id,manufacturer,product_line,catalog_no,capacity_ml,source_url,source_height_without_closure_mm,source_bottom_outer_diameter_mm,source_inner_neck_diameter_mm,source_closure_size,modeled_total_height_cm,modeled_base_diameter_cm,modeled_neck_height_cm,modeled_neck_diameter_cm,holder_stl,holder_bgcode,status,notes
+model_id,manufacturer,product_line,catalog_no,capacity_ml,source_url,source_height_without_closure_mm,source_bottom_outer_diameter_mm,source_inner_neck_diameter_mm,source_closure_size,modeled_total_height_cm,modeled_base_diameter_cm,modeled_neck_height_cm,modeled_neck_diameter_cm,holder_stl,holder_gcode,status,notes
 EOF
 
 cat > "$PACKAGE_README" <<EOF
@@ -55,7 +55,7 @@ This package contains the final printable holder files for the modeled **Tarsons
 
 ## Included Models
 
-| Model ID | Catalog No. | Capacity (mL) | Manufacturer | STL | BGCODE | Notes |
+| Model ID | Catalog No. | Capacity (mL) | Manufacturer | STL | GCODE | Notes |
 | :--- | :--- | ---: | :--- | :---: | :---: | :--- |
 EOF
 
@@ -90,15 +90,15 @@ for dir in $MODEL_GLOB; do
     neck_diameter="$(yaml_get neck_diameter "$measurements_file")"
 
     status="stl_only"
-    bgcode_rel=""
-    notes="No sliced BGCODE included in this package."
+    gcode_rel=""
+    notes="No sliced GCODE included in this package."
 
-    if [ -f "$dir/holder.bgcode" ]; then
+    if [ -f "$dir/holder.gcode" ]; then
         status="sliced"
-        bgcode_rel="models/$model_id/holder.bgcode"
-        notes="Sliced with PrusaSlicer for the MK4S workflow tracked in this repository."
+        gcode_rel="models/$model_id/holder.gcode"
+        notes="Sliced with PrusaSlicer for the MK3 workflow tracked in this repository."
     elif [ "$model_id" = "tarsons_pc_vented_2000ml" ]; then
-        notes="STL included, but no BGCODE is packaged because the current MK4S slicing workflow reported that the object is outside the configured print volume."
+        notes="STL included, but no GCODE is packaged because the current MK3 slicing workflow reported that the object is outside the configured print volume."
     fi
 
     mkdir -p "$model_output_dir"
@@ -107,8 +107,8 @@ for dir in $MODEL_GLOB; do
     cp "$dir/holder.stl" "$model_output_dir/"
     cp "$dir/holder_with_flask.stl" "$model_output_dir/"
 
-    if [ -f "$dir/holder.bgcode" ]; then
-        cp "$dir/holder.bgcode" "$model_output_dir/"
+    if [ -f "$dir/holder.gcode" ]; then
+        cp "$dir/holder.gcode" "$model_output_dir/"
     fi
 
     printf '| `%s` | `%s` | %s | %s | yes | %s | %s |\n' \
@@ -116,7 +116,7 @@ for dir in $MODEL_GLOB; do
         "$catalog_no" \
         "$capacity_ml" \
         "$manufacturer" \
-        "$( [ -f "$dir/holder.bgcode" ] && printf 'yes' || printf 'no' )" \
+        "$( [ -f "$dir/holder.gcode" ] && printf 'yes' || printf 'no' )" \
         "$notes" >> "$PACKAGE_README"
 
     {
@@ -135,7 +135,7 @@ for dir in $MODEL_GLOB; do
         csv_escape "$neck_height"; printf ','
         csv_escape "$neck_diameter"; printf ','
         csv_escape "models/$model_id/holder.stl"; printf ','
-        csv_escape "$bgcode_rel"; printf ','
+        csv_escape "$gcode_rel"; printf ','
         csv_escape "$status"; printf ','
         csv_escape "$notes"; printf '\n'
     } >> "$PACKAGE_MANIFEST"
@@ -152,13 +152,13 @@ cat >> "$PACKAGE_README" <<'EOF'
 - `models/<model_id>/flask.stl`: printable flask geometry
 - `models/<model_id>/holder.stl`: printable holder geometry
 - `models/<model_id>/holder_with_flask.stl`: combined preview geometry
-- `models/<model_id>/holder.bgcode`: sliced print file when available
+- `models/<model_id>/holder.gcode`: sliced print file when available
 
 ## Interpretation Notes
 
 - `source_height_without_closure_mm` and `source_bottom_outer_diameter_mm` come directly from the Tarsons product page.
 - `neck_diameter` and `neck_height` in the model are explicit modeling assumptions tracked in `measurements.yaml`.
-- The 2000 mL model is included as geometry and metadata, but is not packaged with BGCODE because the current MK4S slicing setup does not fit it inside the configured print volume.
+- The 2000 mL model is included as geometry and metadata, but is not packaged with GCODE because the current MK3 slicing setup does not fit it inside the configured print volume.
 EOF
 
 tar -C "$(dirname "$OUTPUT_DIR")" -czf "${OUTPUT_DIR}.tar.gz" "$(basename "$OUTPUT_DIR")"

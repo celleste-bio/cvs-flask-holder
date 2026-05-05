@@ -2,14 +2,32 @@
 set -e
 
 # Profiles
-PRINTER="Original Prusa MK4S HF0.4 nozzle"
-PRINT_PROFILE="0.20mm SPEED @MK4S HF0.4"
-MATERIAL="Generic PLA @MK4S HF0.4"
+PRINTER="${PRINTER:-Original Prusa i3 MK3S & MK3S+ 0.4 nozzle}"
+PRINT_PROFILE="${PRINT_PROFILE:-0.20mm QUALITY @MK3}"
+MATERIAL="${MATERIAL:-Generic PLA}"
+NOZZLE_TEMP="${NOZZLE_TEMP:-215}"
+BED_TEMP="${BED_TEMP:-60}"
+BRIM_WIDTH="${BRIM_WIDTH:-8}"
+INFILL_DENSITY="${INFILL_DENSITY:-15%}"
+BRIDGE_SPEED="${BRIDGE_SPEED:-25}"
+PERIMETER_SPEED="${PERIMETER_SPEED:-40}"
+SMALL_PERIMETER_SPEED="${SMALL_PERIMETER_SPEED:-20}"
+EXTERNAL_PERIMETER_SPEED="${EXTERNAL_PERIMETER_SPEED:-25}"
 FLATPAK_APP_ID="com.prusa3d.PrusaSlicer"
 
 SLICER_CMD=()
 SLICER_ARGS=()
 SLICER_MODE=""
+SLICER_ENV=()
+SLICER_VENDOR_INI=""
+
+resolve_locale() {
+    if locale -a 2>/dev/null | grep -qx 'C\.utf8'; then
+        SLICER_ENV=(env LC_ALL=C.utf8 LANG=C.utf8)
+    else
+        SLICER_ENV=(env LC_ALL=C.UTF-8 LANG=C.UTF-8)
+    fi
+}
 
 resolve_slicer() {
     if [ -n "${PRUSASLICER:-}" ] && [ -x "$PRUSASLICER" ]; then
@@ -57,7 +75,9 @@ ensure_flatpak_datadir() {
 
     mkdir -p "$config_dir/vendor"
 
-    if [ ! -f "$config_dir/vendor/PrusaResearch.ini" ]; then
+    SLICER_VENDOR_INI="$config_dir/vendor/PrusaResearch.ini"
+
+    if [ ! -f "$SLICER_VENDOR_INI" ]; then
         cp -r "$appdir/files/share/PrusaSlicer/profiles/." "$config_dir/vendor/"
     fi
 
@@ -73,6 +93,38 @@ sla_print =
 EOF
     fi
 
+    SLICER_ARGS=(--datadir "$config_dir" --load "$SLICER_VENDOR_INI")
+}
+
+ensure_path_datadir() {
+    local config_dir vendor_dir
+
+    config_dir="$HOME/.config/PrusaSlicer"
+    vendor_dir="${PRUSASLICER_VENDOR_DIR:-/usr/share/PrusaSlicer/profiles}"
+    SLICER_VENDOR_INI="$vendor_dir/PrusaResearch.ini"
+
+    if [ ! -f "$SLICER_VENDOR_INI" ]; then
+        echo "PrusaSlicer vendor profiles not found at $SLICER_VENDOR_INI" >&2
+        echo "Set PRUSASLICER_VENDOR_DIR=/path/to/profiles containing PrusaResearch.ini." >&2
+        exit 1
+    fi
+
+    mkdir -p "$config_dir/vendor"
+
+    if [ ! -f "$config_dir/vendor/PrusaResearch.ini" ]; then
+        cp -r "$vendor_dir/." "$config_dir/vendor/"
+    fi
+
+    cat > "$config_dir/PrusaSlicer.ini" <<EOF
+[presets]
+filament = $MATERIAL
+physical_printer =
+print = $PRINT_PROFILE
+printer = $PRINTER
+sla_material =
+sla_print =
+EOF
+
     SLICER_ARGS=(--datadir "$config_dir" --load "$config_dir/vendor/PrusaResearch.ini")
 }
 
@@ -82,8 +134,12 @@ resolve_slicer || {
     exit 1
 }
 
+resolve_locale
+
 if [ "$SLICER_MODE" = "flatpak" ]; then
     ensure_flatpak_datadir
+else
+    ensure_path_datadir
 fi
 
 # Find all holder.stl files in models/
@@ -95,18 +151,23 @@ find models -name "holder.stl" | sort | while read -r file; do
     echo "----------------------------------------"
     echo "Slicing $size model from $file..."
 
-    "${SLICER_CMD[@]}" "${SLICER_ARGS[@]}" -g "$file" \
-      -o "${dir}/holder.bgcode" \
-      --printer-profile "$PRINTER" \
-      --print-profile "$PRINT_PROFILE" \
-      --material-profile "$MATERIAL" \
+    "${SLICER_ENV[@]}" "${SLICER_CMD[@]}" "${SLICER_ARGS[@]}" -g "$file" \
+      -o "${dir}/holder.gcode" \
       --scale 10 \
-      --fill-density 15% \
-      --brim-width 5 \
-      --center 125,105 \
-      --binary-gcode
+      --fill-density "$INFILL_DENSITY" \
+      --brim-width "$BRIM_WIDTH" \
+      --temperature "$NOZZLE_TEMP" \
+      --first-layer-temperature "$NOZZLE_TEMP" \
+      --bed-temperature "$BED_TEMP" \
+      --first-layer-bed-temperature "$BED_TEMP" \
+      --bridge-speed "$BRIDGE_SPEED" \
+      --perimeter-speed "$PERIMETER_SPEED" \
+      --small-perimeter-speed "$SMALL_PERIMETER_SPEED" \
+      --external-perimeter-speed "$EXTERNAL_PERIMETER_SPEED" \
+      --center 125,105
+    #   --binary-gcode
       
-    echo "Exported to ${dir}/holder.bgcode"
+    echo "Exported to ${dir}/holder.gcode"
 done
 
 echo "----------------------------------------"

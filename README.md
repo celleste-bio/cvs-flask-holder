@@ -1,12 +1,20 @@
 # CVS (Cell Volume after Sedimentation) Apparatus
 
-Parametric OpenSCAD implementations of the **CVS (Cell Volume after Sedimentation) Apparatus**.
+Parametric Luametry implementations of the **CVS (Cell Volume after Sedimentation) Apparatus**.
  
 This project provides a **parametric, 3D-printable model** of the CVS apparatus described by Mustafa et al. (2011). While the measurement method itself is established, this repository offers a flexible design that can be customized to fit any Erlenmeyer flask dimensions, optimizing it for 3D printing and laboratory use.
 
 ## Specification Tracking
 
 Manufacturer-backed flask specification tracking lives in [specifications/erlenmeyer-specifications.csv](/root/cvs-flask-holder/specifications/erlenmeyer-specifications.csv) with supporting notes in [specifications/erlenmeyer-spec-sources.md](/root/cvs-flask-holder/specifications/erlenmeyer-spec-sources.md).
+
+Project documentation lives in `documentation/`:
+
+- [project-overview.md](/root/cvs-flask-holder/documentation/project-overview.md)
+- [repo-map.md](/root/cvs-flask-holder/documentation/repo-map.md)
+- [workflows.md](/root/cvs-flask-holder/documentation/workflows.md)
+- [holder-traceability.md](/root/cvs-flask-holder/documentation/holder-traceability.md)
+- [flask-id-index.md](/root/cvs-flask-holder/documentation/flask-id-index.md)
 
 The current tracked manufacturer-specific plastic capped line is:
 
@@ -66,9 +74,11 @@ Standard flask markings are notoriously inaccurate (5-10% error margin) and desi
 ## Prerequisites
 
 To use and generate these models, you need:
-1.  **Luametry** (built from `~/Projects/luametry`)
-2.  **Luam** language runtime (dependency of Luametry from `~/Projects/luam`)
-3.  **Git** (to manage dependencies)
+1.  **Luametry** (built from `~/projects/luametry`)
+2.  **Luam** language runtime (dependency of Luametry from `~/projects/luam`)
+3.  **OpenSCAD** (for comparison PNG previews)
+4.  **PrusaSlicer** (for sliced G-code outputs)
+5.  **Git** (to manage dependencies)
 
 ## Installation
 
@@ -78,7 +88,7 @@ Clone the repository:
 git clone <repository-url>
 cd erlenmeyer-holders
 ```
-Luametry and lua-utils are expected at `~/Projects/luametry` and `~/Projects/lua-utils`.
+Luametry and Luam are expected at `~/projects/luametry` and `~/projects/luam`.
 
 ## Deployment / Reproduction
 
@@ -115,7 +125,7 @@ make
 ```bash
 ./scripts/package_tarsons_pc_vented.sh
 ```
-This creates a `distribution/` directory and `.tar.gz` archive containing the final STL/BGCODE files plus a manifest that maps each file to manufacturer, catalog number, capacity, and source specifications.
+This creates a `distribution/` directory and `.tar.gz` archive containing the final STL/GCODE files plus a manifest that maps each file to manufacturer, catalog number, capacity, and source specifications.
 
 ## Repository Structure
 
@@ -144,7 +154,7 @@ make
 
 We recommend the following equipment and software, which were used to validate the models:
 
-*   **Printer**: [Original Prusa MK4S](https://www.prusa3d.com/product/original-prusa-mk4s-3d-printer/)
+*   **Printer**: [Original Prusa i3 MK3S / MK3S+](https://www.prusa3d.com/product/original-prusa-i3-mk3s-3d-printer/)
 *   **Slicer**: [PrusaSlicer](https://www.prusa3d.com/page/prusaslicer_424/)
 
 The provided `slice_all.sh` script is configured for PrusaSlicer CLI.
@@ -158,6 +168,16 @@ For manufacturer-specific folders, keep two things separate:
 
 - published dimensions copied directly from the source
 - modeling assumptions needed by this geometry, such as outer neck diameter when a vendor only publishes inner neck diameter
+
+For traceability, each `measurements.yaml` should also define:
+
+- `flask_id`: full canonical ID for manifests and lookups
+- `engraving_id`: short ID engraved on the printed holder
+- `manufacturer`, `family_code`, `variant_code`, `capacity_ml`, `revision`: normalized metadata used to explain the ID
+
+See [holder-traceability.md](/root/cvs-flask-holder/documentation/holder-traceability.md) for the full provenance and ID documentation.
+
+The printed holder carries both provenance engravings on the two front base tabs: the Git commit hash on one tab and the short `engraving_id` on the other.
 
 **Required Measurements:**
 
@@ -183,30 +203,33 @@ Use Luametry to run the parametric scripts. The scripts read the measurements YA
 **Generate a Flask Model:**
 ```bash
 CVS_MEASUREMENTS=models/100ml/measurements.yaml \
-  /home/bensiv/Projects/luametry/bin/luametry export source/flask.lua -o models/100ml/flask.stl
+  CVS_COMMIT_ID="$(git rev-parse --short=7 HEAD)" \
+  "$HOME/projects/luametry/bin/luametry" export source/flask.lua -o models/100ml/flask.stl
 ```
 
 **Generate a Holder Model:**
 ```bash
 CVS_MEASUREMENTS=models/100ml/measurements.yaml \
-  /home/bensiv/Projects/luametry/bin/luametry export source/holder.lua -o models/100ml/holder.stl
+  CVS_COMMIT_ID="$(git rev-parse --short=7 HEAD)" \
+  "$HOME/projects/luametry/bin/luametry" export source/holder.lua -o models/100ml/holder.stl
 ```
 
 **Generate a Holder with Flask Visualization:**
 ```bash
 # Set CVS_WITH_FLASK to include the flask geometry for fit checks
 CVS_MEASUREMENTS=models/100ml/measurements.yaml CVS_WITH_FLASK=true \
-  /home/bensiv/Projects/luametry/bin/luametry export source/holder.lua -o models/100ml/holder_with_flask.stl
+  CVS_COMMIT_ID="$(git rev-parse --short=7 HEAD)" \
+  "$HOME/projects/luametry/bin/luametry" export source/holder.lua -o models/100ml/holder_with_flask.stl
 ```
 
 ### 3. Batch Processing
 Use the provided shell scripts (ensure they are executable: `chmod +x *.sh`):
 
-- **Generate All SCAD Files**:
+- **Generate All STL Files**:
   ```bash
   ./scripts/model_all.sh
   ```
-- **Render All to STL**:
+- **Refresh Holder STL Files**:
   ```bash
   ./scripts/render_all.sh
   ```
@@ -214,6 +237,11 @@ Use the provided shell scripts (ensure they are executable: `chmod +x *.sh`):
   ```bash
   ./scripts/slice_all.sh
   ```
+- **Run the Full Pipeline**:
+  ```bash
+  ./scripts/build_all.sh
+  ```
+  This exports STL files, refreshes holder STL files, slices GCODE, and exports PNG previews for every `scripts/compare*.scad` scene into `artifacts/compare/`.
 - **Package Manufacturer-Tracked Tarsons Outputs**:
   ```bash
   ./scripts/package_tarsons_pc_vented.sh
