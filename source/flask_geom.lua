@@ -2,6 +2,12 @@
 
 const cad = require("cad")
 
+function anchored_cylinder(params)
+    height = params.h or params.height
+    cylinder = cad.cylinder(params)
+    return cad.modify.translate(cylinder, {0, 0, height / 2})
+end
+
 function create_torus(minor_r, major_r)
     return cad.torus({major_r=major_r, minor_r=minor_r})
 end
@@ -12,7 +18,7 @@ function build_flask(dims)
     neck_radius = dims.neck_diameter / 2
     base_radius = dims.base_diameter / 2
 
-    neck = cad.cylinder({h=neck_height, r=neck_radius})
+    neck = anchored_cylinder({h=neck_height, r=neck_radius})
     rim_radius = neck_radius / 5
     rim = create_torus(rim_radius, neck_radius)
     rim = cad.modify.translate(rim, {0, 0, neck_height - rim_radius})
@@ -23,7 +29,7 @@ function build_flask(dims)
     base_rim_radius = base_radius / base_rim_scale
     base = create_torus(base_rim_radius, base_radius - base_rim_radius/(base_rim_scale/3))
     chest_height = total_height - neck_height - (base_rim_radius * 2)
-    chest = cad.cylinder({h=chest_height, r1=base_radius - base_rim_radius, r2=neck_radius})
+    chest = anchored_cylinder({h=chest_height, r1=base_radius - base_rim_radius, r2=neck_radius})
     chest = cad.modify.translate(chest, {0, 0, base_rim_radius})
 
     body = cad.hull({chest, base})

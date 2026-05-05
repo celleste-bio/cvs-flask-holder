@@ -34,6 +34,17 @@ function right_angle_triangle(a, b, thickness)
     }, thickness)
 end
 
+function anchored_cube(params)
+    cube = cad.cube(params)
+    return cad.modify.translate(cube, {params.x / 2, params.y / 2, params.z / 2})
+end
+
+function anchored_cylinder(params)
+    height = params.h or params.height
+    cylinder = cad.cylinder(params)
+    return cad.modify.translate(cylinder, {0, 0, height / 2})
+end
+
 function get_commit_id()
     commit_id = os.getenv("CVS_COMMIT_ID")
     if commit_id == nil or commit_id == "" then
@@ -131,28 +142,28 @@ function erlenmeyer_holder(dims, angle, thickness, tolerance)
     length_shift = tolerance / math.sin(math.rad(skel.diagonal))
     total_length = utils.round(skel.y_offset + length_shift, 4)
     base_width = utils.round(dims.base_diameter / 3, 4)
-    base = cad.cube({x = base_width, y = total_length, z = thickness})
+    base = anchored_cube({x = base_width, y = total_length, z = thickness})
     base = cad.modify.translate(base, {base_width, 0, 0})
 
     -- 3. Neck Rest Construction
     neck_rest_base_length = utils.round(total_length / 8, 4)
-    neck_rest_base = cad.cube({x = dims.base_diameter, y = neck_rest_base_length, z = thickness})
+    neck_rest_base = anchored_cube({x = dims.base_diameter, y = neck_rest_base_length, z = thickness})
 
     neck_bottom_z_at_target = skel.neck_rest_target.z - skel.vertical_radius_neck
     neck_rest_body_height = utils.round(neck_bottom_z_at_target - tolerance - thickness, 4)
     neck_rest_head_height = utils.round(vpro(skel.neck_radius, skel.diagonal), 4)
 
-    neck_rest_body = cad.cube({x = skel.base_radius, y = thickness, z = neck_rest_body_height})
+    neck_rest_body = anchored_cube({x = skel.base_radius, y = thickness, z = neck_rest_body_height})
     neck_rest_body = cad.modify.translate(neck_rest_body, {skel.base_radius / 2, 0, 0})
 
-    neck_rest_head = cad.cube({x = skel.base_radius, y = thickness, z = neck_rest_head_height})
+    neck_rest_head = anchored_cube({x = skel.base_radius, y = thickness, z = neck_rest_head_height})
     neck_rest_head = cad.modify.rotate(neck_rest_head, {-angle, 0, 0})
     neck_rest_head = cad.modify.translate(neck_rest_head, {skel.base_radius / 2, 0, neck_rest_body_height})
 
     -- Neck Cutout
     cutout_radius = skel.neck_radius + tolerance
     cutout_height_len = dims.neck_height * 2
-    cutout = cad.cylinder({h = cutout_height_len, r1 = cutout_radius, r2 = cutout_radius})
+    cutout = anchored_cylinder({h = cutout_height_len, r1 = cutout_radius, r2 = cutout_radius})
     cutout = cad.modify.rotate(cutout, {skel.diagonal, 0, 0})
 
     start_shift = dims.neck_height * 0.5
@@ -161,7 +172,7 @@ function erlenmeyer_holder(dims, angle, thickness, tolerance)
     start_z = start_z - thickness
     cutout = cad.modify.translate(cutout, {skel.base_radius, start_y, start_z})
 
-    cutout_top = cad.cylinder({h = cutout_height_len, r1 = cutout_radius * 1.2, r2 = cutout_radius * 1.2})
+    cutout_top = anchored_cylinder({h = cutout_height_len, r1 = cutout_radius * 1.2, r2 = cutout_radius * 1.2})
     cutout_top = cad.modify.rotate(cutout_top, {skel.diagonal, 0, 0})
     cutout_top = cad.modify.translate(cutout_top, {skel.base_radius, start_y, start_z + skel.neck_radius})
 
@@ -171,7 +182,7 @@ function erlenmeyer_holder(dims, angle, thickness, tolerance)
     neck_rest = cad.difference({neck_rest, full_cutout})
 
     -- 4. Base Rest Block
-    base_rest_base = cad.cube({x = dims.base_diameter, y = neck_rest_base_length, z = thickness})
+    base_rest_base = anchored_cube({x = dims.base_diameter, y = neck_rest_base_length, z = thickness})
     base_rest_base = cad.modify.translate(base_rest_base, {0, total_length - neck_rest_base_length, 0})
 
     base_rest_left = right_angle_triangle(vpro(skel.base_radius, skel.diagonal), hpro(skel.base_radius, skel.diagonal), thickness)
