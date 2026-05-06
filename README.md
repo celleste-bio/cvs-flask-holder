@@ -6,31 +6,22 @@ This project provides a **parametric, 3D-printable model** of the CVS apparatus 
 
 ## Specification Tracking
 
-Manufacturer-backed flask specification tracking lives in [specifications/erlenmeyer-specifications.csv](/root/cvs-flask-holder/specifications/erlenmeyer-specifications.csv) with supporting notes in [specifications/erlenmeyer-spec-sources.md](/root/cvs-flask-holder/specifications/erlenmeyer-spec-sources.md).
+Manufacturer-backed flask specification tracking lives in [specifications/erlenmeyer-specifications.csv](specifications/erlenmeyer-specifications.csv) with supporting notes in [specifications/erlenmeyer-spec-sources.md](specifications/erlenmeyer-spec-sources.md).
 
 Project documentation lives in `documentation/`:
 
-- [project-overview.md](/root/cvs-flask-holder/documentation/project-overview.md)
-- [repo-map.md](/root/cvs-flask-holder/documentation/repo-map.md)
-- [workflows.md](/root/cvs-flask-holder/documentation/workflows.md)
-- [holder-traceability.md](/root/cvs-flask-holder/documentation/holder-traceability.md)
-- [flask-id-index.md](/root/cvs-flask-holder/documentation/flask-id-index.md)
+- [project-overview.md](documentation/project-overview.md)
+- [repo-map.md](documentation/repo-map.md)
+- [workflows.md](documentation/workflows.md)
+- [holder-traceability.md](documentation/holder-traceability.md)
+- [flask-id-index.md](documentation/flask-id-index.md)
 
 The current tracked manufacturer-specific plastic capped line is:
 
 - Tarsons sterile flat-base polycarbonate Erlenmeyer cell culture flasks with vented HDPE closure
   - Source: https://www.tarsons.com/product/sterile-erlenmeyer-cell-culture-flask-flat-base-pc-with-vented-hdpe-closure/
-  - Modeled sizes: `125`, `250`, `500`, `1000`, `2000` mL
+  - Modeled sizes: ` capacity_ml`: `125`, `250`, `500`, `1000`, `2000` mL
   - Model folders: `models/tarsons_pc_vented_125ml` through `models/tarsons_pc_vented_2000ml`
-
-The CSV also tracks additional manufacturer resources and metadata such as material family, capped vs. rimmed/open neck, base style, sterility, and closure style for future model work.
-
-Smaller OpenSCAD comparison scenes are available in `scripts/`:
-
-- `compare_classic_open.scad` for the original open-rim flask set
-- `compare_tarsons_pc_vented.scad` for all Tarsons plastic capped vented flasks
-- `compare_tarsons_pc_vented_small.scad` for Tarsons 125/250/500 mL
-- `compare_tarsons_pc_vented_large.scad` for Tarsons 1000/2000 mL
 
 ## Scientific Context & Benefits
 
@@ -45,7 +36,7 @@ Standard flask markings are notoriously inaccurate (5-10% error margin) and desi
 **Result**: A <1mm change in biomass (invisible on a flat bottom) becomes a **5–10mm change** along the angled wall, making it easily readable with a standard ruler.
 
 #### 2. Consistency of "Packing"
-**The Problem**: Cells (especially cocoa) form aggregates (clumps) that settle loosely and unevenly in vertical flasks due to friction.
+**The Problem**: Cells form aggregates (clumps) that settle loosely and unevenly in vertical flasks due to friction.
 **The 60° Solution**: This angle is the "goldilocks" tilt—steep enough for cells to slide to maximum packing density, but stable enough to prevent collapse.
 **Result**: Ensures every measurement has uniform packing pressure, creating a **linear correlation to Fresh Weight (FW)**.
 
@@ -61,200 +52,76 @@ Standard flask markings are notoriously inaccurate (5-10% error margin) and desi
 | **Accuracy** | ± 10% (Approximate) | **High** (Correlates to Fresh Weight) |
 | **Readability** | Very poor for thin layers | **High** (Vertical height is amplified) |
 | **Contamination Risk** | Low | **Zero** (Flask remains sealed) |
-| **Suitability for Cocoa** | Poor (Aggregates settle unevenly) | **Excellent** (Optimal packing) |
+| **Suitability** | Poor (Aggregates settle unevenly) | **Excellent** (Optimal packing) |
 
 ### Reference Material
 > **Reference Paper:**
 > Mustafa, N. R., de Winter, W., van Iren, F. & Verpoorte, R. (2011). **Initiation, growth and cryopreservation of plant cell suspension cultures**. *Nature Protocols*, 6(6), 715–742.
 
+## Software Stack & Implementation
 
+This project uses a modern parametric CAD stack based on Lua and the Manifold geometry library.
 
-*Note: The apparatus provided here is a supplementary tool to facilitate the handling of flasks described in the protocol. It is not the invention claimed in the cited patent (US Patent 5,965,438), which relates to the cryopreservation method itself.*
+1.  **[Luam](https://github.com/BenSiv/luam)**: A modernized Lua dialect and runtime with local-by-default scoping and static building capabilities.
+2.  **[Luametry](https://github.com/BenSiv/luametry)**: A professional, Lua-based parametric CAD tool. It provides the high-level API for defining 3D shapes.
+3.  **[Manifold](https://github.com/elalish/manifold)**: A high-performance geometry library for topological robustness. Luametry uses Manifold for all Constructive Solid Geometry (CSG) operations (union, difference, intersection, hull).
 
-## Prerequisites
-
-To use and generate these models, you need:
-1.  **Luametry** (built from `~/projects/luametry`)
-2.  **Luam** language runtime (dependency of Luametry from `~/projects/luam`)
-3.  **OpenSCAD** (for comparison PNG previews)
-4.  **PrusaSlicer** (for sliced G-code outputs)
-5.  **Git** (to manage dependencies)
+### Direct STL Generation
+Unlike older OpenSCAD workflows, this project generates STL files **directly** from Luametry. 
+- **No SCAD intermediate files**: Geometry is computed and exported as high-fidelity STL meshes in one step.
+- **Unified Utilities**: All shared logic and geometric utilities are integrated into the `luam` environment (e.g., `luam/lib/utils`). The legacy `dependencies/lua-utils` and `dependencies/lua-openscad` submodules are **no longer used**.
 
 ## Installation
 
-Clone the repository:
+### 1. Build Dependencies
+Follow the build and installation instructions for:
+- [Manifold](https://github.com/elalish/manifold) (Recommended: build as static library)
+- [Luam](https://github.com/BenSiv/luam)
+- [Luametry](https://github.com/BenSiv/luametry)
 
+Ensure `luam` and `luametry` binaries are in your `PATH` (e.g., at `/usr/local/bin`).
+
+### 2. Clone Repository
 ```bash
-git clone <repository-url>
-cd erlenmeyer-holders
+git clone https://github.com/BenSiv/cvs-flask-holder.git
+cd cvs-flask-holder
 ```
-Luametry and Luam are expected at `~/projects/luametry` and `~/projects/luam`.
-
-## Deployment / Reproduction
-
-To ensure a consistent environment for generating models and documentation, we provide a **Podman** container configuration.
-
-### 1. Build and Run Container
-Use the provided helper script to build the image and enter the container shell:
-
-```bash
-./deployment/build_and_run.sh
-```
-
-### 2. Run Tasks Inside Container
-Once inside the container (which mounts the current directory to `/data`), you can run the standard workflows:
-
-**Generate Models:**
-```bash
-./scripts/model_all.sh
-```
-
-**Generate Documentation (PDF):**
-```bash
-cd publications
-make
-```
-
-**Slice Models (Generates G-code):**
-```bash
-./scripts/slice_all.sh
-```
-*(Note: The container includes a PrusaSlicer AppImage)*
-
-**Package Tarsons Release Files:**
-```bash
-./scripts/package_tarsons_pc_vented.sh
-```
-This creates a `distribution/` directory and `.tar.gz` archive containing the final STL/GCODE files plus a manifest that maps each file to manufacturer, catalog number, capacity, and source specifications.
 
 ## Repository Structure
 
-- **`source/`**: Luametry scripts that define the parametric 3D geometry.
-    - `flask.lua`: Generates the flask shape.
-    - `holder.lua`: Generates the holder apparatus.
-- **`scripts/`**: Helper shell scripts for batch processing.
-- **`models/`**: Contains configuration and generated files for specific flask sizes.
-    - **`[size]ml/`** (e.g., `100ml/`, `250ml/`):
-        - `measurements.yaml`: Definition of flask dimensions.
-        - `*.stl`: Generated Luametry meshes.
-- **`publications/`**: Files for generating the scientific paper documentation (PDF).
-
-- **`dependencies/`**: Local dependencies (submodules).
-
-## Publication
-
-A scientific paper format of this documentation is available in the `publications/` directory. To generate the PDF:
-
-```bash
-cd publications
-make
-```
-
-## Fabrication
-
-We recommend the following equipment and software, which were used to validate the models:
-
-*   **Printer**: [Original Prusa i3 MK3S / MK3S+](https://www.prusa3d.com/product/original-prusa-i3-mk3s-3d-printer/)
-*   **Slicer**: [PrusaSlicer](https://www.prusa3d.com/page/prusaslicer_424/)
-
-The provided `slice_all.sh` script is configured for PrusaSlicer CLI.
+- **`source/`**: Luametry scripts defining the parametric geometry.
+    - `flask.lua`: Defines the flask reference shape.
+    - `holder.lua`: Defines the printable holder apparatus.
+- **`models/`**: Configuration and generated artifacts for specific flask sizes.
+    - `measurements.yaml`: Flask dimensions and metadata (source of truth).
+    - `flask.stl`: Generated visualization mesh.
+    - `holder.stl`: Generated printable apparatus mesh.
+- **`scripts/`**: Automation scripts for batch processing and build pipelines.
 
 ## Usage
 
 ### 1. Configure Dimensions
-Edit the `measurements.yaml` file in the desired size folder (e.g., `100ml/measurements.yaml`) to match your specific flask dimensions.
+Edit the `measurements.yaml` in a model directory (e.g., `models/100ml/measurements.yaml`).
 
-For manufacturer-specific folders, keep two things separate:
-
-- published dimensions copied directly from the source
-- modeling assumptions needed by this geometry, such as outer neck diameter when a vendor only publishes inner neck diameter
-
-For traceability, each `measurements.yaml` should also define:
-
-- `flask_id`: full canonical ID for manifests and lookups
-- `engraving_id`: short ID engraved on the printed holder
-- `manufacturer`, `family_code`, `variant_code`, `capacity_ml`, `revision`: normalized metadata used to explain the ID
-
-See [holder-traceability.md](/root/cvs-flask-holder/documentation/holder-traceability.md) for the full provenance and ID documentation.
-
-The printed holder carries both provenance engravings on the two front base tabs: the Git commit hash on one tab and the short `engraving_id` on the other.
-
-**Required Measurements:**
-
-- **`total_height`**: Absolute height from base to top of rim.
-- **`neck_height`**: Length of the neck (including the rim).
-- **`base_diameter`**: Diameter of the base at its widest point.
-- **`neck_diameter`**: Diameter of the neck (excluding the rim).
-
-*(Note: `body_height` is automatically calculated as `total_height - neck_height`)*
-
-**Example (250ml Flask):**
-
+**Example:**
 ```yaml
-total_height: 13.3  # cm
-neck_height: 1.0    # cm (with rim)
-base_diameter: 8.0  # cm
-neck_diameter: 3.7  # cm (without rim)
+total_height: 13.3
+neck_height: 1.0
+base_diameter: 8.0
+neck_diameter: 3.7
 ```
 
 ### 2. Generate Models
-Use Luametry to run the parametric scripts. The scripts read the measurements YAML from the `CVS_MEASUREMENTS` environment variable.
+Use the `scripts/build_all.sh` to regenerate all artifacts, or run manually:
 
-**Generate a Flask Model:**
+**Export Holder STL:**
 ```bash
-CVS_MEASUREMENTS=models/100ml/measurements.yaml \
-  CVS_COMMIT_ID="$(git rev-parse --short=7 HEAD)" \
-  "$HOME/projects/luametry/bin/luametry" export source/flask.lua -o models/100ml/flask.stl
+CVS_MEASUREMENTS=models/100ml/measurements.yaml luametry export source/holder.lua -o models/100ml/holder.stl
 ```
 
-**Generate a Holder Model:**
-```bash
-CVS_MEASUREMENTS=models/100ml/measurements.yaml \
-  CVS_COMMIT_ID="$(git rev-parse --short=7 HEAD)" \
-  "$HOME/projects/luametry/bin/luametry" export source/holder.lua -o models/100ml/holder.stl
-```
-
-**Generate a Holder with Flask Visualization:**
-```bash
-# Set CVS_WITH_FLASK to include the flask geometry for fit checks
-CVS_MEASUREMENTS=models/100ml/measurements.yaml CVS_WITH_FLASK=true \
-  CVS_COMMIT_ID="$(git rev-parse --short=7 HEAD)" \
-  "$HOME/projects/luametry/bin/luametry" export source/holder.lua -o models/100ml/holder_with_flask.stl
-```
-
-### 3. Batch Processing
-Use the provided shell scripts (ensure they are executable: `chmod +x *.sh`):
-
-- **Generate All STL Files**:
-  ```bash
-  ./scripts/model_all.sh
-  ```
-- **Refresh Holder STL Files**:
-  ```bash
-  ./scripts/render_all.sh
-  ```
-- **Slice All** (Requires PrusaSlicer CLI configuration):
-  ```bash
-  ./scripts/slice_all.sh
-  ```
-- **Run the Full Pipeline**:
-  ```bash
-  ./scripts/build_all.sh
-  ```
-  This exports STL files, refreshes holder STL files, slices GCODE, and exports PNG previews for every `scripts/compare*.scad` scene into `artifacts/compare/`.
-- **Package Manufacturer-Tracked Tarsons Outputs**:
-  ```bash
-  ./scripts/package_tarsons_pc_vented.sh
-  ```
+### 3. Fabrication
+*   **Printer**: Optimized for FDM (e.g., Prusa MK3S+).
+*   **Slicer**: PrusaSlicer (use `scripts/slice_all.sh` for batch slicing).
 
 ## License
-
-**MIT License**
-
-Copyright (c) 2026 Celleste Bio
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+MIT License. Copyright (c) 2026 Celleste Bio.

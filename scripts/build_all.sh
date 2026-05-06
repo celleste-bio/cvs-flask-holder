@@ -122,6 +122,8 @@ cd "$REPO_DIR"
 if [ "$RUN_MODEL" -eq 1 ]; then
     echo "==> Exporting flask and holder STL files"
     "$SCRIPT_DIR/model_all.sh"
+    # Skip render_all.sh as model_all.sh already exports holder.stl
+    RUN_RENDER=0
 fi
 
 if [ "$RUN_COMPARE" -eq 1 ]; then

@@ -4,107 +4,51 @@ This document gives a practical map of the repository so it is easier to locate 
 
 ## Top-Level Layout
 
-- `README.md`: short project entry point
-- `documentation/`: project documentation and navigation aids
-- `source/`: parametric geometry source code in Lua
-- `models/`: per-flask model definitions and generated outputs
-- `scripts/`: batch generation, rendering, slicing, comparison, and packaging helpers
-- `specifications/`: source-backed flask specification records
-- `distribution/`: packaged release outputs
-- `artifacts/`: generated comparison images and similar derived outputs
-- `deployment/`: containerized build environment helpers
-- `publications/`: paper manuscript, references, and rendered publication assets
-- `dimensions/`: exploratory dimensional analysis inputs and notes
-- `dependencies/`: vendored or submodule dependencies used by the geometry code
+- `README.md`: project entry point and software stack overview.
+- `documentation/`: project documentation and navigation aids.
+- `source/`: parametric geometry source code in Lua (**Luametry**).
+- `models/`: per-flask model definitions and generated STL/G-code outputs.
+- `scripts/`: automation scripts for batch processing, slicing, and packaging.
+- `specifications/`: source-backed manufacturer flask specifications.
+- `distribution/`: packaged release bundles.
+- `artifacts/`: generated visual comparison outputs.
+- `deployment/`: containerized build environment (Podman).
+- `publications/`: paper manuscript and rendered assets.
+- `dependencies/`: **[DEPRECATED]** Legacy submodules. Utilities are now integrated via `luam`.
 
 ## Source Code
 
 ### `source/`
-
-- `flask.lua`: builds the flask reference geometry used for visualization and fit checks
-- `holder.lua`: builds the printable holder geometry and engravings
+Geometric logic evaluated by Luametry:
+- `flask.lua`: flask reference geometry for visualization.
+- `holder.lua`: printable holder geometry and engravings.
+- `bootstrap.lua`: configures imports and environment.
+- `flask_geom.lua`: shared geometry primitives.
 
 ## Model Definitions And Outputs
 
 ### `models/`
-
-Each subdirectory represents one flask model.
-
-Typical contents:
-
-- `measurements.yaml`: source-of-truth dimensions and metadata
-- `flask.scad`: generated flask geometry
-- `holder.scad`: generated holder geometry
-- `holder_with_flask.scad`: generated holder plus flask visualization
-- `holder.stl`: rendered printable mesh
-- `holder.bgcode`: sliced print output
-
-Current families include:
-
-- generic open Erlenmeyer reference sizes
-- Tarsons vented cell culture flasks
+Each subdirectory represents a specific flask model.
+- `measurements.yaml`: source-of-truth dimensions.
+- `flask.stl`: direct Luametry mesh export.
+- `holder.stl`: direct Luametry mesh export (printable).
+- `holder.gcode`: sliced print output.
+- `*.manifest.json`: metadata for traceability.
 
 ## Scripts
 
 ### `scripts/`
-
-Operational entry points:
-
-- `model_all.sh`: generate SCAD for all models
-- `render_all.sh`: render STL files
-- `slice_all.sh`: slice print jobs
-- `build_all.sh`: run the full main pipeline
-- `package_tarsons_pc_vented.sh`: create Tarsons release packages
-
-Comparison scenes:
-
-- `compare_all.scad`
-- `compare_classic_open.scad`
-- `compare_tarsons_pc_vented.scad`
-- `compare_tarsons_pc_vented_small.scad`
-- `compare_tarsons_pc_vented_large.scad`
+- `model_all.sh`: batch generates STL files for all models.
+- `slice_all.sh`: batch slices all models into G-code.
+- `build_all.sh`: full end-to-end build pipeline.
+- `package_tarsons_pc_vented.sh`: bundles Tarsons release files.
+- `compare_*.scad`: legacy OpenSCAD visualization scripts (use with caution).
 
 ## Documentation
 
 ### `documentation/`
-
-- `project-overview.md`: project-level orientation
-- `workflows.md`: build and maintenance workflows
-- `holder-traceability.md`: holder provenance model
-- `flask-id-index.md`: short-ID registry and decoding table
-- `repo-map.md`: this file
-
-## Specifications
-
-### `specifications/`
-
-This directory is reserved for specification material and source-backed records:
-
-- `erlenmeyer-specifications.csv`: tracked manufacturer or source rows
-- `erlenmeyer-spec-sources.md`: notes about where each specification came from
-
-## Publication Material
-
-### `publications/`
-
-- `paper.md`: manuscript source
-- `references.bib`: bibliography
-- `paper.pdf`: built paper output
-- `images/`: paper figures
-
-## Build Environment
-
-### `deployment/`
-
-- `Containerfile`: reproducible container definition
-- `build_and_run.sh`: helper to enter the build environment
-
-## Derived Output Areas
-
-### `artifacts/`
-
-Stores generated visual comparison outputs.
-
-### `distribution/`
-
-Stores packaged release bundles prepared for sharing or fabrication handoff.
+- `project-overview.md`: high-level architecture.
+- `workflows.md`: standard operation procedures.
+- `holder-traceability.md`: details on provenance engravings.
+- `flask-id-index.md`: registry of flask and engraving IDs.
+- `repo-map.md`: this file.

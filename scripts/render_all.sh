@@ -4,7 +4,14 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-LUAMETRY_BIN="${LUAMETRY_BIN:-$HOME/projects/luametry/bin/luametry}"
+if [ -z "${LUAMETRY_BIN:-}" ]; then
+    if command -v luametry >/dev/null 2>&1; then
+        LUAMETRY_BIN="$(command -v luametry)"
+    else
+        LUAMETRY_BIN="$HOME/projects/luametry/bin/luametry"
+    fi
+fi
+
 if [ ! -x "$LUAMETRY_BIN" ]; then
     echo "Luametry binary not found at $LUAMETRY_BIN" >&2
     exit 1
