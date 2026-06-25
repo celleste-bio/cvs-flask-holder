@@ -38,14 +38,14 @@ function build_base_plate(dims, thickness, total_length, neck_rest_base_length, 
     -- 2. Center slot for Ruler Plate (Diagonal Brace)
     center_slot_len = total_length - 2 * neck_rest_base_length
     center_slot = dovetail.build_rail_y(center_slot_len, slot_w_base, slot_w_neck, slot_h)
-    center_slot = cad.modify.translate(center_slot, {skel.base_radius, neck_rest_base_length, thickness})
+    center_slot = cad.modify.translate(center_slot, {skel.base_radius + thickness / 2, neck_rest_base_length, thickness})
 
     -- 3. Rear slots for Base Rest Supports (Left & Right)
     rear_slot_left = dovetail.build_rail_y(neck_rest_base_length, slot_w_base, slot_w_neck, slot_h)
-    rear_slot_left = cad.modify.translate(rear_slot_left, {base_width, total_length - neck_rest_base_length, thickness})
+    rear_slot_left = cad.modify.translate(rear_slot_left, {base_width + thickness / 2, total_length - neck_rest_base_length, thickness})
 
     rear_slot_right = dovetail.build_rail_y(neck_rest_base_length, slot_w_base, slot_w_neck, slot_h)
-    rear_slot_right = cad.modify.translate(rear_slot_right, {base_width * 2 - thickness, total_length - neck_rest_base_length, thickness})
+    rear_slot_right = cad.modify.translate(rear_slot_right, {base_width * 2 - thickness / 2, total_length - neck_rest_base_length, thickness})
 
     -- Cut all slots out of the base plate
     base_plate = cad.difference({base_plate, front_slot, center_slot, rear_slot_left, rear_slot_right})

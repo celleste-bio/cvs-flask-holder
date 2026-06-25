@@ -193,7 +193,10 @@ function erlenmeyer_holder(dims, angle, thickness, tolerance)
 
     if with_flask or assembled_only then
         -- Return assembled model
-        return cad.union({base_plate, neck_tower, base_rest_left, base_rest_right, ruler})
+        neck_tower_assembled = cad.modify.translate(neck_tower, {0, 0, thickness})
+        base_rest_left_assembled = cad.modify.translate(base_rest_left, {0, 0, thickness})
+        base_rest_right_assembled = cad.modify.translate(base_rest_right, {0, 0, thickness})
+        return cad.union({base_plate, neck_tower_assembled, base_rest_left_assembled, base_rest_right_assembled, ruler})
     else
         -- Return print layout (laying all parts flat on Z=0 plane)
         
