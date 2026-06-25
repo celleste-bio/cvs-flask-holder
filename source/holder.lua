@@ -158,26 +158,37 @@ function erlenmeyer_holder(dims, angle, thickness, tolerance)
 
     -- 5. Create engravings
     engrave_depth = utils.round(thickness * 0.4, 4)
-    text_size = utils.round(base_width * 0.14, 4)
+    commit_id = get_commit_id()
+    flask_id = get_engraving_id(dims)
+
+    max_len = math.max(#commit_id, #flask_id)
+    text_size = (base_width - 2 * thickness) / (max_len * 1.2 - 0.2)
+    text_size = utils.round(math.min(text_size, base_width * 0.15), 4)
+
+    commit_width = utils.round((#commit_id * 1.2 - 0.2) * text_size, 4)
+    flask_width = utils.round((#flask_id * 1.2 - 0.2) * text_size, 4)
+
+    commit_x = utils.round(base_width / 2 - commit_width / 2, 4)
+    flask_x = utils.round(2.5 * base_width - flask_width / 2, 4)
 
     commit_mark = create_engraving_mark(
-        get_commit_id(),
+        commit_id,
         text_size,
         engrave_depth
     )
     commit_mark = cad.modify.translate(commit_mark, {
-        utils.round(base_width, 4),
+        commit_x,
         utils.round(neck_rest_base_length / 2, 4),
         -0.01
     })
 
     flask_mark = create_engraving_mark(
-        get_engraving_id(dims),
+        flask_id,
         text_size,
         engrave_depth
     )
     flask_mark = cad.modify.translate(flask_mark, {
-        utils.round(dims.base_diameter - thickness, 4),
+        flask_x,
         utils.round(neck_rest_base_length / 2, 4),
         -0.01
     })
