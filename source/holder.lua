@@ -203,10 +203,12 @@ function erlenmeyer_holder(dims, angle, thickness, tolerance)
         -- B. Neck Rest: rotate 90 around X to lie flat
         neck_bottom_z_at_target = skel.neck_rest_target.z - skel.vertical_radius_neck
         neck_rest_body_height = utils.round(neck_bottom_z_at_target - tolerance - thickness, 4)
+        neck_rest_head_height = utils.round(vpro(skel.neck_radius, skel.diagonal), 4)
+        neck_total_height = neck_rest_body_height + neck_rest_head_height * math.cos(math.rad(angle)) + thickness * math.sin(math.rad(angle))
         neck_flat = cad.modify.rotate(neck_tower, {90, 0, 0})
         neck_flat = cad.modify.translate(neck_flat, {
             -skel.base_radius / 2,
-            neck_rest_body_height + thickness,
+            neck_total_height,
             0
         })
 
@@ -261,7 +263,8 @@ function erlenmeyer_holder(dims, angle, thickness, tolerance)
         right_print = cad.modify.translate(right_flat, {dims.base_diameter + gap, b + gap, 0})
 
         -- Ruler Plate to the right of Neck Rest and Supports
-        ruler_print = cad.modify.translate(ruler_flat, {dims.base_diameter + gap + math.max(a, skel.base_radius) + gap, 0, 0})
+        max_width = math.max(a + dt.h, skel.base_radius)
+        ruler_print = cad.modify.translate(ruler_flat, {dims.base_diameter + gap + max_width + gap, 0, 0})
         return cad.union({base_plate_print, neck_print, left_print, right_print, ruler_print})
     end
 end

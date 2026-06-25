@@ -37,7 +37,7 @@ function build_ruler_plate(dims, thickness, tolerance, angle, skel, dt, neck_res
 
     ruler = right_angle_triangle(r_h, r_l, thickness)
     ruler = cad.modify.rotate(ruler, {0, 270, 0})
-    ruler = cad.modify.translate(ruler, {skel.base_radius - thickness / 2, thickness, thickness})
+    ruler = cad.modify.translate(ruler, {skel.base_radius + thickness / 2, thickness, thickness})
 
     -- Cutout for Neck Rest Tower's foot block (so it sits on top of the foot at the front)
     cut_x = thickness * 2
