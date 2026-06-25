@@ -23,9 +23,9 @@ end
 function build_rail_z(length, w_base, w_neck, h)
     points = {
         {-w_neck / 2, 0},
-        {w_neck / 2, 0},
-        {w_base / 2, -h},
         {-w_base / 2, -h},
+        {w_base / 2, -h},
+        {w_neck / 2, 0},
         {-w_neck / 2, 0}
     }
     return cad.extrude(points, length)
