@@ -67,6 +67,7 @@ function create_engraving_mark(label, text_size, depth)
         rounded = true
     })
     mark = cad.modify.translate(mark, {0, -text_size / 2, depth / 2})
+    mark = cad.modify.scale(mark, {-1, 1, 1})
     mark = cad.modify.rotate(mark, {0, 0, 180})
     return mark
 end
@@ -156,26 +157,29 @@ function erlenmeyer_holder(dims, angle, thickness, tolerance)
     ruler_plate_mod = require("pieces.ruler_plate")
 
     -- 5. Create engravings
+    engrave_depth = utils.round(thickness * 0.4, 4)
+    text_size = utils.round(base_width * 0.14, 4)
+
     commit_mark = create_engraving_mark(
         get_commit_id(),
-        utils.round(base_width * 0.18, 4),
-        utils.round(thickness + 0.2, 4)
+        text_size,
+        engrave_depth
     )
     commit_mark = cad.modify.translate(commit_mark, {
         utils.round(base_width, 4),
         utils.round(neck_rest_base_length / 2, 4),
-        -0.1
+        -0.01
     })
 
     flask_mark = create_engraving_mark(
         get_engraving_id(dims),
-        utils.round(base_width * 0.18, 4),
-        utils.round(thickness + 0.2, 4)
+        text_size,
+        engrave_depth
     )
     flask_mark = cad.modify.translate(flask_mark, {
         utils.round(dims.base_diameter - thickness, 4),
         utils.round(neck_rest_base_length / 2, 4),
-        -0.1
+        -0.01
     })
 
     -- 6. Build pieces in assembled coordinates
