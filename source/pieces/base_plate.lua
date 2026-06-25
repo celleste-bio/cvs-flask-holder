@@ -2,6 +2,7 @@
 
 cad = require("cad")
 dovetail = require("pieces.dovetail")
+utils = require("lib.utils")
 
 function hpro(length, angle)
     return length * math.cos(math.rad(angle))
@@ -37,8 +38,20 @@ function build_base_plate(dims, thickness, total_length, neck_rest_base_length, 
     front_slot = cad.modify.translate(front_slot, {skel.base_radius, 0, thickness})
 
     -- 5. Center slot for Ruler Plate (Diagonal Brace)
-    center_slot_len = total_length - 2 * neck_rest_base_length
-    center_slot = dovetail.build_rail_y(center_slot_len, slot_w_base, slot_w_neck, slot_h)
+    ruler_width_adjustment = skel.tolerance / math.sin(math.rad(skel.diagonal))
+    neck_bottom_z_at_target = skel.neck_rest_target.z - skel.vertical_radius_neck
+    neck_rest_body_height = utils.round(neck_bottom_z_at_target - skel.tolerance - thickness, 4)
+    ruler_plate_height = neck_rest_body_height - thickness
+    ruler_plate_length = dims.chest_height - thickness - (thickness * math.cos(math.rad(skel.angle))) - ruler_width_adjustment
+    ruler_plate_clearance = thickness + skel.tolerance
+    ruler_plate_scale = math.max(
+        (ruler_plate_height - ruler_plate_clearance) / ruler_plate_height,
+        thickness / ruler_plate_height
+    )
+    r_l = ruler_plate_length * ruler_plate_scale
+    bottom_rail_len = utils.round((thickness + r_l) - neck_rest_base_length, 4)
+
+    center_slot = dovetail.build_rail_y(bottom_rail_len, slot_w_base, slot_w_neck, slot_h)
     center_slot = cad.modify.translate(center_slot, {skel.base_radius, neck_rest_base_length, thickness})
 
     -- 6. Rear slots for Base Rest Supports (Left & Right)

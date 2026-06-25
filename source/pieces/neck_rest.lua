@@ -59,7 +59,7 @@ function build_neck_rest(dims, angle, thickness, tolerance, skel, dt, total_leng
     slot_w_base = dt.w_base + 2 * dt.tol
     slot_w_neck = dt.w_neck + 2 * dt.tol
     slot_h = dt.h + dt.tol
-    back_slot = dovetail.build_rail_z(neck_rest_body_height, slot_w_base, slot_w_neck, slot_h)
+    back_slot = dovetail.build_rail_z(neck_rest_body_height + neck_rest_head_height * 2, slot_w_base, slot_w_neck, slot_h)
     back_slot = cad.modify.translate(back_slot, {skel.base_radius, thickness, 0})
 
     -- Subtract slot and neck cutout
