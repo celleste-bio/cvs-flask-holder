@@ -4,8 +4,8 @@ script_dir = string.match(debug.getinfo(1).source, "@(.*[/\\])") or "./"
 bootstrap = dofile(script_dir .. "bootstrap.lua")
 bootstrap.configure_imports(script_dir)
 
-const utils = require("lib.utils")
-const flask_geom = require("flask_geom")
+utils = require("lib.utils")
+flask_geom = require("flask_geom")
 
 function resolve_measurements_path()
     path = os.getenv("CVS_MEASUREMENTS")

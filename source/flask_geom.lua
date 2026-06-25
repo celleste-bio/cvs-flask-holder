@@ -1,6 +1,6 @@
 -- Shared flask geometry for Luametry-based models.
 
-const cad = require("cad")
+cad = require("cad")
 
 function anchored_cylinder(params)
     height = params.h or params.height
