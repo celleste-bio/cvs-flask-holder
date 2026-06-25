@@ -5,14 +5,11 @@ dovetail = require("pieces.dovetail")
 utils = require("lib.utils")
 
 function anchored_cube(params)
-    cube = cad.cube(params)
-    return cad.modify.translate(cube, {params.x / 2, params.y / 2, params.z / 2})
+    return cad.cube(params)
 end
 
 function anchored_cylinder(params)
-    height = params.h or params.height
-    cylinder = cad.cylinder(params)
-    return cad.modify.translate(cylinder, {0, 0, height / 2})
+    return cad.cylinder(params)
 end
 
 function build_neck_rest(dims, angle, thickness, tolerance, skel, dt, total_length, neck_rest_base_length)

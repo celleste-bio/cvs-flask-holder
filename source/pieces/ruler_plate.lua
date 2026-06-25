@@ -15,8 +15,7 @@ function right_angle_triangle(a, b, thickness)
 end
 
 function anchored_cube(params)
-    cube = cad.cube(params)
-    return cad.modify.translate(cube, {params.x / 2, params.y / 2, params.z / 2})
+    return cad.cube(params)
 end
 
 function build_ruler_plate(dims, thickness, tolerance, angle, skel, dt, neck_rest_base_length)
@@ -38,26 +37,26 @@ function build_ruler_plate(dims, thickness, tolerance, angle, skel, dt, neck_res
 
     ruler = right_angle_triangle(r_h, r_l, thickness)
     ruler = cad.modify.rotate(ruler, {0, 270, 0})
-    ruler = cad.modify.translate(ruler, {skel.base_radius, thickness, thickness})
+    ruler = cad.modify.translate(ruler, {skel.base_radius - thickness / 2, thickness, thickness})
 
     -- Cutout for Neck Rest Tower's foot block (so it sits on top of the foot at the front)
     cut_x = thickness * 2
     cut_y = neck_rest_base_length - thickness
     cut_z = thickness
     foot_cutout = anchored_cube({x = cut_x, y = cut_y, z = cut_z})
-    foot_cutout = cad.modify.translate(foot_cutout, {skel.base_radius - thickness / 2, thickness, thickness})
+    foot_cutout = cad.modify.translate(foot_cutout, {skel.base_radius - thickness, thickness, thickness})
 
     ruler = cad.difference({ruler, foot_cutout})
 
     -- Bottom rail along Y (starts at Y = neck_rest_base_length, ends at Y = thickness + r_l)
     bottom_rail_len = (thickness + r_l) - neck_rest_base_length
     bottom_rail = dovetail.build_rail_y(bottom_rail_len, dt.w_base, dt.w_neck, dt.h)
-    bottom_rail = cad.modify.translate(bottom_rail, {skel.base_radius + thickness / 2, neck_rest_base_length, thickness})
+    bottom_rail = cad.modify.translate(bottom_rail, {skel.base_radius, neck_rest_base_length, thickness})
 
     -- Front rail along Z (starts at Z = 2 * thickness, height goes up by r_h - thickness)
     front_rail_h = r_h - thickness
     front_rail = dovetail.build_rail_z(front_rail_h, dt.w_base, dt.w_neck, dt.h)
-    front_rail = cad.modify.translate(front_rail, {skel.base_radius + thickness / 2, thickness, 2 * thickness})
+    front_rail = cad.modify.translate(front_rail, {skel.base_radius, thickness, 2 * thickness})
 
     -- Combine ruler body with its rails
     return cad.union({ruler, bottom_rail, front_rail})

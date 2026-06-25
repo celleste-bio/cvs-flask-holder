@@ -3,9 +3,7 @@
 cad = require("cad")
 
 function anchored_cylinder(params)
-    height = params.h or params.height
-    cylinder = cad.cylinder(params)
-    return cad.modify.translate(cylinder, {0, 0, height / 2})
+    return cad.cylinder(params)
 end
 
 function create_torus(minor_r, major_r)

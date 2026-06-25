@@ -164,8 +164,8 @@ find models -name "holder.stl" | sort | while read -r file; do
       --perimeter-speed "$PERIMETER_SPEED" \
       --small-perimeter-speed "$SMALL_PERIMETER_SPEED" \
       --external-perimeter-speed "$EXTERNAL_PERIMETER_SPEED" \
-      --center 125,105
-    #   --binary-gcode
+      --center 125,105 \
+      --bed-shape 0x0,250x0,250x210,0x210
       
     echo "Exported to ${dir}/holder.gcode"
 done

@@ -35,14 +35,11 @@ function right_angle_triangle(a, b, thickness)
 end
 
 function anchored_cube(params)
-    cube = cad.cube(params)
-    return cad.modify.translate(cube, {params.x / 2, params.y / 2, params.z / 2})
+    return cad.cube(params)
 end
 
 function anchored_cylinder(params)
-    height = params.h or params.height
-    cylinder = cad.cylinder(params)
-    return cad.modify.translate(cylinder, {0, 0, height / 2})
+    return cad.cylinder(params)
 end
 
 function get_commit_id()
@@ -206,33 +203,31 @@ function erlenmeyer_holder(dims, angle, thickness, tolerance)
         -- B. Neck Rest: rotate 90 around X to lie flat
         neck_bottom_z_at_target = skel.neck_rest_target.z - skel.vertical_radius_neck
         neck_rest_body_height = utils.round(neck_bottom_z_at_target - tolerance - thickness, 4)
-        neck_print = cad.modify.rotate(neck_tower, {90, 0, 0})
-        neck_print = cad.modify.translate(neck_print, {
+        neck_flat = cad.modify.rotate(neck_tower, {90, 0, 0})
+        neck_flat = cad.modify.translate(neck_flat, {
             -skel.base_radius / 2,
             neck_rest_body_height + thickness,
             0
         })
-        neck_print = cad.modify.translate(neck_print, {dims.base_diameter + thickness * 2, 0, 0})
 
         -- C. Left Support: rotate 90 around Y to lie flat
         a = vpro(skel.base_radius, skel.diagonal)
+        b = hpro(skel.base_radius, skel.diagonal)
         foot_w = thickness * 2
-        left_print = cad.modify.rotate(base_rest_left, {0, 90, 0})
-        left_print = cad.modify.translate(left_print, {
+        left_flat = cad.modify.rotate(base_rest_left, {0, 90, 0})
+        left_flat = cad.modify.translate(left_flat, {
             dt.h,
-            -(total_length - hpro(skel.base_radius, skel.diagonal)),
+            -(total_length - b),
             base_width + thickness/2 + foot_w/2
         })
-        left_print = cad.modify.translate(left_print, {0, total_length + thickness * 2, 0})
 
         -- D. Right Support: rotate 90 around Y to lie flat
-        right_print = cad.modify.rotate(base_rest_right, {0, 90, 0})
-        right_print = cad.modify.translate(right_print, {
+        right_flat = cad.modify.rotate(base_rest_right, {0, 90, 0})
+        right_flat = cad.modify.translate(right_flat, {
             dt.h,
-            -(total_length - hpro(skel.base_radius, skel.diagonal)),
+            -(total_length - b),
             base_width * 2 - thickness/2 + foot_w/2
         })
-        right_print = cad.modify.translate(right_print, {a + thickness * 2, total_length + thickness * 2, 0})
 
         -- E. Ruler Plate: rotate 90 around Y to lie flat
         ruler_width_adjustment = tolerance / math.sin(math.rad(skel.diagonal))
@@ -246,14 +241,27 @@ function erlenmeyer_holder(dims, angle, thickness, tolerance)
         r_h = ruler_plate_height * ruler_plate_scale
         r_l = ruler_plate_length * ruler_plate_scale
 
-        ruler_print = cad.modify.rotate(ruler, {0, 90, 0})
-        ruler_print = cad.modify.translate(ruler_print, {
+        ruler_flat = cad.modify.rotate(ruler, {0, 90, 0})
+        ruler_flat = cad.modify.translate(ruler_flat, {
             -(thickness - dt.h),
             -(thickness - dt.h),
-            skel.base_radius + thickness
+            skel.base_radius + dt.w_base/2
         })
-        ruler_print = cad.modify.translate(ruler_print, {2 * a + thickness * 4, total_length + thickness * 2, 0})
 
+        -- Arrange in positive quadrant with a constant gap (0.3cm = 3mm)
+        gap = 0.3
+        
+        -- Neck Rest next to Base Plate
+        neck_print = cad.modify.translate(neck_flat, {dims.base_diameter + gap, 2 * b + 2 * gap, 0})
+
+        -- Left Support next to Base Plate (below Neck Rest)
+        left_print = cad.modify.translate(left_flat, {dims.base_diameter + gap, 0, 0})
+
+        -- Right Support next to Base Plate (between Left Support and Neck Rest)
+        right_print = cad.modify.translate(right_flat, {dims.base_diameter + gap, b + gap, 0})
+
+        -- Ruler Plate to the right of Neck Rest and Supports
+        ruler_print = cad.modify.translate(ruler_flat, {dims.base_diameter + gap + math.max(a, skel.base_radius) + gap, 0, 0})
         return cad.union({base_plate_print, neck_print, left_print, right_print, ruler_print})
     end
 end

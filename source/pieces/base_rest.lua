@@ -3,7 +3,6 @@
 cad = require("cad")
 dovetail = require("pieces.dovetail")
 
-
 function right_angle_triangle(a, b, thickness)
     return cad.extrude({
         {0, 0},
@@ -14,8 +13,7 @@ function right_angle_triangle(a, b, thickness)
 end
 
 function anchored_cube(params)
-    cube = cad.cube(params)
-    return cad.modify.translate(cube, {params.x / 2, params.y / 2, params.z / 2})
+    return cad.cube(params)
 end
 
 function build_base_rest_left(dims, thickness, total_length, neck_rest_base_length, base_width, skel, dt)
@@ -27,7 +25,7 @@ function build_base_rest_left(dims, thickness, total_length, neck_rest_base_leng
     tri = cad.modify.translate(tri, {base_width, total_length, 0})
 
     foot_w = thickness * 2
-    foot_l = neck_rest_base_length
+    foot_l = b
     foot = anchored_cube({x = foot_w, y = foot_l, z = thickness})
     foot = cad.modify.translate(foot, {base_width + thickness / 2 - foot_w / 2, total_length - foot_l, 0})
 
@@ -46,7 +44,7 @@ function build_base_rest_right(dims, thickness, total_length, neck_rest_base_len
     tri = cad.modify.translate(tri, {base_width * 2 - thickness, total_length, 0})
 
     foot_w = thickness * 2
-    foot_l = neck_rest_base_length
+    foot_l = b
     foot = anchored_cube({x = foot_w, y = foot_l, z = thickness})
     foot = cad.modify.translate(foot, {base_width * 2 - thickness / 2 - foot_w / 2, total_length - foot_l, 0})
 
