@@ -171,8 +171,8 @@ find models -name "holder.stl" | sort | while read -r file; do
     echo "Exported to ${dir}/holder.gcode"
 done
 
-# Slice split-print parts (part1/part2/part3) for models that need them
-for n in 1 2 3; do
+# Slice split-print parts (part1/part2) for all models
+for n in 1 2; do
     find models -name "holder_part${n}.stl" | sort | while read -r file; do
         dir=$(dirname "$file")
         size=$(basename "$dir")
