@@ -16,11 +16,15 @@ Project documentation lives in `documentation/`:
 - [holder-traceability.md](documentation/holder-traceability.md)
 - [flask-id-index.md](documentation/flask-id-index.md)
 
-The current tracked manufacturer-specific plastic capped line is:
+Tracked flask lines:
 
-- Tarsons sterile flat-base polycarbonate Erlenmeyer cell culture flasks with vented HDPE closure
+- **Generic Erlenmeyer** (open rim) — reference dimensions for standard glass flasks
+  - Modeled sizes: `100`, `250`, `500`, `1000`, `2000` mL
+  - Model folders: `models/100ml` through `models/2000ml`
+
+- **Tarsons** sterile flat-base polycarbonate Erlenmeyer cell culture flasks with vented HDPE closure
   - Source: https://www.tarsons.com/product/sterile-erlenmeyer-cell-culture-flask-flat-base-pc-with-vented-hdpe-closure/
-  - Modeled sizes: ` capacity_ml`: `125`, `250`, `500`, `1000`, `2000` mL
+  - Modeled sizes: `125`, `250`, `500`, `1000`, `2000` mL
   - Model folders: `models/tarsons_pc_vented_125ml` through `models/tarsons_pc_vented_2000ml`
 
 ## Scientific Context & Benefits
@@ -94,8 +98,13 @@ cd cvs-flask-holder
     - `holder.lua`: Defines the printable holder apparatus.
 - **`models/`**: Configuration and generated artifacts for specific flask sizes.
     - `measurements.yaml`: Flask dimensions and metadata (source of truth).
-    - `flask.stl`: Generated visualization mesh.
-    - `holder.stl`: Generated printable apparatus mesh.
+    - `flask.stl`: Flask reference mesh for visualization.
+    - `holder.stl`: Printable holder in single-print layout.
+    - `holder_assembled.stl`: All pieces shown assembled (fit check).
+    - `holder_with_flask.stl`: Holder + flask combined (fit check).
+    - `holder_part1.stl` / `holder_part2.stl`: Split-print layout for large models.
+    - `holder.gcode` / `holder_part1.gcode` / `holder_part2.gcode`: Sliced toolpaths.
+    - `*.manifest.json`: Traceability metadata.
 - **`scripts/`**: Automation scripts for batch processing and build pipelines.
 
 ## Usage
@@ -112,11 +121,22 @@ neck_diameter: 3.7
 ```
 
 ### 2. Generate Models
-Use the `scripts/build_all.sh` to regenerate all artifacts, or run manually:
+Run the batch generator to export all STL files for all models:
 
-**Export Holder STL:**
+```bash
+./scripts/model_all.sh
+```
+
+Or export a single model manually:
+
 ```bash
 CVS_MEASUREMENTS=models/100ml/measurements.yaml luametry export source/holder.lua -o models/100ml/holder.stl
+```
+
+For the full pipeline (models → slicing → comparison renders):
+
+```bash
+./scripts/build_all.sh
 ```
 
 ### 3. Fabrication
