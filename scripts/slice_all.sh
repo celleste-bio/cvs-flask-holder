@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 # Profiles — see documentation/print-parameters.md for rationale
 PRINTER="${PRINTER:-Original Prusa i3 MK2S}"
 PRINT_PROFILE="${PRINT_PROFILE:-0.20mm NORMAL}"
@@ -95,7 +97,9 @@ sla_print =
 EOF
     fi
 
-    SLICER_ARGS=(--datadir "$config_dir" --load "$SLICER_VENDOR_INI")
+    # --datadir is sufficient; PrusaSlicer reads active presets from PrusaSlicer.ini automatically.
+    # Do NOT pass --load with a vendor INI — that format is incompatible and silently breaks profiles.
+    SLICER_ARGS=(--datadir "$config_dir")
 }
 
 ensure_path_datadir() {
@@ -117,17 +121,9 @@ ensure_path_datadir() {
         cp -r "$vendor_dir/." "$config_dir/vendor/"
     fi
 
-    cat > "$config_dir/PrusaSlicer.ini" <<EOF
-[presets]
-filament = $MATERIAL
-physical_printer =
-print = $PRINT_PROFILE
-printer = $PRINTER
-sla_material =
-sla_print =
-EOF
-
-    SLICER_ARGS=(--datadir "$config_dir" --load "$config_dir/vendor/PrusaResearch.ini")
+    # --datadir is sufficient; PrusaSlicer reads active presets from PrusaSlicer.ini automatically.
+    # Do NOT pass --load with a vendor INI — that format is incompatible and silently breaks profiles.
+    SLICER_ARGS=(--datadir "$config_dir")
 }
 
 resolve_slicer || {
@@ -155,6 +151,7 @@ find models -name "holder.stl" | sort | while read -r file; do
 
     "${SLICER_ENV[@]}" "${SLICER_CMD[@]}" "${SLICER_ARGS[@]}" -g "$file" \
       -o "${dir}/holder.gcode" \
+      --load "$SCRIPT_DIR/mk2s-machine.ini" \
       --scale 10 \
       --fill-density "$INFILL_DENSITY" \
       --brim-width "$BRIM_WIDTH" \
