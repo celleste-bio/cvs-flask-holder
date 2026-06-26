@@ -139,17 +139,10 @@ else
     ensure_path_datadir
 fi
 
-# Find all holder.stl files in models/
-find models -name "holder.stl" | sort | while read -r file; do
-    # Extract size from directory name (e.g., models/100ml/holder.stl -> 100ml)
-    dir=$(dirname "$file")
-    size=$(basename "$dir")
-    
-    echo "----------------------------------------"
-    echo "Slicing $size model from $file..."
-
+slice_stl() {
+    local file="$1" out="$2"
     "${SLICER_ENV[@]}" "${SLICER_CMD[@]}" "${SLICER_ARGS[@]}" -g "$file" \
-      -o "${dir}/holder.gcode" \
+      -o "$out" \
       --load "$SCRIPT_DIR/mk2s-machine.ini" \
       --scale 10 \
       --fill-density "$INFILL_DENSITY" \
@@ -166,8 +159,28 @@ find models -name "holder.stl" | sort | while read -r file; do
       --infill-speed "$INFILL_SPEED" \
       --center 125,105 \
       --bed-shape 0x0,250x0,250x210,0x210
-      
+}
+
+# Find all holder.stl files in models/
+find models -name "holder.stl" | sort | while read -r file; do
+    dir=$(dirname "$file")
+    size=$(basename "$dir")
+    echo "----------------------------------------"
+    echo "Slicing $size model from $file..."
+    slice_stl "$file" "${dir}/holder.gcode"
     echo "Exported to ${dir}/holder.gcode"
+done
+
+# Slice split-print parts (part1/part2/part3) for models that need them
+for n in 1 2 3; do
+    find models -name "holder_part${n}.stl" | sort | while read -r file; do
+        dir=$(dirname "$file")
+        size=$(basename "$dir")
+        echo "----------------------------------------"
+        echo "Slicing $size part $n from $file..."
+        slice_stl "$file" "${dir}/holder_part${n}.gcode"
+        echo "Exported to ${dir}/holder_part${n}.gcode"
+    done
 done
 
 echo "----------------------------------------"

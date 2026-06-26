@@ -267,17 +267,46 @@ function erlenmeyer_holder(dims, angle, thickness, tolerance)
 
         -- Arrange in positive quadrant with a constant gap (0.3cm = 3mm)
         gap = 0.3
-        
-        -- Neck Rest next to Base Plate
+
+        -- Split-print support via CVS_PART=1/2/3 for models exceeding the MK2S 250x210mm bed
+        cvs_part = os.getenv("CVS_PART")
+        bed_x_cm = 25.0
+        bed_y_cm = 21.0
+
+        if cvs_part == "1" then
+            -- Base plate only; rotate 90° around Z if total_length exceeds bed Y
+            if total_length > bed_y_cm then
+                base_plate_print = cad.modify.rotate(base_plate_print, {0, 0, 90})
+                base_plate_print = cad.modify.translate(base_plate_print, {total_length, 0, 0})
+            end
+            return base_plate_print
+
+        elseif cvs_part == "2" then
+            -- Ruler + supports; include neck rest when it can fit alongside in Y
+            fits_neck = math.max(r_l + dt.h + gap + b, neck_total_height) <= bed_y_cm
+                     and r_h + dt.h + gap + skel.base_radius <= bed_x_cm
+            if fits_neck then
+                -- Ruler left, neck rest to its right, both supports below ruler
+                neck_print2 = cad.modify.translate(neck_flat, {r_h + dt.h + gap, 0, 0})
+                left_print2 = cad.modify.translate(left_flat, {0, r_l + dt.h + gap, 0})
+                right_print2 = cad.modify.translate(right_flat, {a + dt.h + gap, r_l + dt.h + gap, 0})
+                return cad.union({ruler_flat, neck_print2, left_print2, right_print2})
+            else
+                -- Ruler left, supports stacked in Y to its right (neck rest → part 3)
+                left_print2 = cad.modify.translate(left_flat, {r_h + dt.h + gap, 0, 0})
+                right_print2 = cad.modify.translate(right_flat, {r_h + dt.h + gap, b + gap, 0})
+                return cad.union({ruler_flat, left_print2, right_print2})
+            end
+
+        elseif cvs_part == "3" then
+            -- Neck rest tower only (used when it does not fit in part 2)
+            return neck_flat
+        end
+
+        -- Default: full combined layout
         neck_print = cad.modify.translate(neck_flat, {dims.base_diameter + gap, 2 * b + 2 * gap, 0})
-
-        -- Left Support next to Base Plate (below Neck Rest)
         left_print = cad.modify.translate(left_flat, {dims.base_diameter + gap, 0, 0})
-
-        -- Right Support next to Base Plate (between Left Support and Neck Rest)
         right_print = cad.modify.translate(right_flat, {dims.base_diameter + gap, b + gap, 0})
-
-        -- Ruler Plate to the right of Neck Rest and Supports
         max_width = math.max(a + dt.h, skel.base_radius)
         ruler_print = cad.modify.translate(ruler_flat, {dims.base_diameter + gap + max_width + gap, 0, 0})
         return cad.union({base_plate_print, neck_print, left_print, right_print, ruler_print})
