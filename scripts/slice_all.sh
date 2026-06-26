@@ -9,7 +9,6 @@ PRINT_PROFILE="${PRINT_PROFILE:-0.20mm NORMAL}"
 MATERIAL="${MATERIAL:-Generic PLA}"
 NOZZLE_TEMP="${NOZZLE_TEMP:-215}"
 BED_TEMP="${BED_TEMP:-55}"
-BRIM_WIDTH="${BRIM_WIDTH:-8}"
 INFILL_DENSITY="${INFILL_DENSITY:-15%}"
 BRIDGE_SPEED="${BRIDGE_SPEED:-25}"
 PERIMETER_SPEED="${PERIMETER_SPEED:-25}"
@@ -154,7 +153,8 @@ find models -name "holder.stl" | sort | while read -r file; do
       --load "$SCRIPT_DIR/mk2s-machine.ini" \
       --scale 10 \
       --fill-density "$INFILL_DENSITY" \
-      --brim-width "$BRIM_WIDTH" \
+      --brim-type no_brim \
+      --skirts 0 \
       --temperature "$NOZZLE_TEMP" \
       --first-layer-temperature "$NOZZLE_TEMP" \
       --bed-temperature "$BED_TEMP" \
