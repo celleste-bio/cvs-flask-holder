@@ -30,7 +30,10 @@ Generate printer toolpaths (G-code) from the STL files:
 ```bash
 ./scripts/slice_all.sh
 ```
-This requires **PrusaSlicer** CLI.
+
+This requires **PrusaSlicer** CLI (native install, Flatpak, or AppImage — the script auto-detects).
+
+Default settings target the **Original Prusa i3 MK2S** at 215 °C / 55 °C with infill capped at 40 mm/s to stay within the hotend's volumetric flow limit. See [`print-parameters.md`](print-parameters.md) for the full rationale and a list of overridable environment variables.
 
 ## Full Build Workflow
 

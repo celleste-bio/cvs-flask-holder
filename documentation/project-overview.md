@@ -38,6 +38,7 @@ The project leverages a modern CAD stack:
 - `flask-id-index.md`: registry of current short IDs and full IDs.
 - `repo-map.md`: structure guide for the repository.
 - `workflows.md`: practical generation and release workflow notes.
+- `print-parameters.md`: validated print settings, speed limits, and slicing configuration for the MK2S.
 
 ## Legacy Note
 Previously, the project relied on OpenSCAD and local submodules (`lua-utils`, `lua-openscad`). These have been deprecated in favor of the integrated **Luametry** environment and built-in runtime utilities (`luam/lib/utils`).

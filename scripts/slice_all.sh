@@ -1,18 +1,20 @@
 #!/bin/bash
 set -e
 
-# Profiles
-PRINTER="${PRINTER:-Original Prusa i3 MK3S & MK3S+ 0.4 nozzle}"
-PRINT_PROFILE="${PRINT_PROFILE:-0.20mm QUALITY @MK3}"
+# Profiles — see documentation/print-parameters.md for rationale
+PRINTER="${PRINTER:-Original Prusa i3 MK2S}"
+PRINT_PROFILE="${PRINT_PROFILE:-0.20mm NORMAL}"
 MATERIAL="${MATERIAL:-Generic PLA}"
 NOZZLE_TEMP="${NOZZLE_TEMP:-215}"
-BED_TEMP="${BED_TEMP:-60}"
+BED_TEMP="${BED_TEMP:-55}"
 BRIM_WIDTH="${BRIM_WIDTH:-8}"
 INFILL_DENSITY="${INFILL_DENSITY:-15%}"
 BRIDGE_SPEED="${BRIDGE_SPEED:-25}"
-PERIMETER_SPEED="${PERIMETER_SPEED:-40}"
+PERIMETER_SPEED="${PERIMETER_SPEED:-25}"
 SMALL_PERIMETER_SPEED="${SMALL_PERIMETER_SPEED:-20}"
 EXTERNAL_PERIMETER_SPEED="${EXTERNAL_PERIMETER_SPEED:-25}"
+# Cap infill at 20 mm/s — validated by test print; MK2S slips above ~1.8 mm³/s at 215 °C
+INFILL_SPEED="${INFILL_SPEED:-20}"
 FLATPAK_APP_ID="com.prusa3d.PrusaSlicer"
 
 SLICER_CMD=()
@@ -164,6 +166,7 @@ find models -name "holder.stl" | sort | while read -r file; do
       --perimeter-speed "$PERIMETER_SPEED" \
       --small-perimeter-speed "$SMALL_PERIMETER_SPEED" \
       --external-perimeter-speed "$EXTERNAL_PERIMETER_SPEED" \
+      --infill-speed "$INFILL_SPEED" \
       --center 125,105 \
       --bed-shape 0x0,250x0,250x210,0x210
       

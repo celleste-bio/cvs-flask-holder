@@ -120,8 +120,9 @@ CVS_MEASUREMENTS=models/100ml/measurements.yaml luametry export source/holder.lu
 ```
 
 ### 3. Fabrication
-*   **Printer**: Optimized for FDM (e.g., Prusa MK3S+).
-*   **Slicer**: PrusaSlicer (use `scripts/slice_all.sh` for batch slicing).
+*   **Printer**: Original Prusa i3 MK2S, 0.4 mm nozzle, PLA.
+*   **Slicer**: PrusaSlicer — use `scripts/slice_all.sh` for automated batch slicing.
+*   **Print settings**: See [`documentation/print-parameters.md`](documentation/print-parameters.md) for validated temperatures, speeds, and the infill speed cap required by the MK2S hotend.
 
 ## License
 MIT License. Copyright (c) 2026 Celleste Bio.
