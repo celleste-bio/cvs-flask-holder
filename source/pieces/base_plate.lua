@@ -58,10 +58,10 @@ function build_base_plate(dims, thickness, total_length, neck_rest_base_length, 
     b = hpro(skel.base_radius, skel.diagonal)
 
     left_slot = dovetail.build_rail_y(b, slot_w_base, slot_w_neck, slot_h)
-    left_slot = cad.modify.translate(left_slot, {base_width + thickness / 2, total_length - b, thickness})
+    left_slot = cad.modify.translate(left_slot, {base_width + thickness / 4, total_length - b, thickness})
 
     right_slot = dovetail.build_rail_y(b, slot_w_base, slot_w_neck, slot_h)
-    right_slot = cad.modify.translate(right_slot, {base_width * 2 - thickness / 2, total_length - b, thickness})
+    right_slot = cad.modify.translate(right_slot, {base_width * 2 - 3 * thickness / 4, total_length - b, thickness})
 
     -- Cut all slots and engravings
     base_plate = cad.difference({base_plate, front_slot, center_slot, left_slot, right_slot, commit_mark, flask_mark})

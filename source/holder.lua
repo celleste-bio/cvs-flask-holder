@@ -163,7 +163,7 @@ function erlenmeyer_holder(dims, angle, thickness, tolerance)
 
     max_len = math.max(#commit_id, #flask_id)
     text_size = (base_width - 2 * thickness) / (max_len * 1.2 - 0.2)
-    text_size = utils.round(math.min(text_size, base_width * 0.15), 4)
+    text_size = utils.round(math.min(text_size, base_width * 0.12), 4)
 
     commit_width = utils.round((#commit_id * 1.2 - 0.2) * text_size, 4)
     flask_width = utils.round((#flask_id * 1.2 - 0.2) * text_size, 4)
@@ -227,23 +227,23 @@ function erlenmeyer_holder(dims, angle, thickness, tolerance)
             0
         })
 
-        -- C. Left Support: rotate 90 around Y to lie flat
+        -- C. Left Support: rotate 90 around Y to lie flat; foot outer face at Z=0
         a = vpro(skel.base_radius, skel.diagonal)
         b = hpro(skel.base_radius, skel.diagonal)
-        foot_w = thickness * 2
         left_flat = cad.modify.rotate(base_rest_left, {0, 90, 0})
         left_flat = cad.modify.translate(left_flat, {
             dt.h,
             -(total_length - b),
-            base_width + thickness/2 + foot_w/2
+            base_width + thickness
         })
 
-        -- D. Right Support: rotate 90 around Y to lie flat
+        -- D. Right Support: rotate 90 around Y, mirror in Y for symmetric layout
         right_flat = cad.modify.rotate(base_rest_right, {0, 90, 0})
+        right_flat = cad.modify.scale(right_flat, {1, -1, 1})
         right_flat = cad.modify.translate(right_flat, {
             dt.h,
-            -(total_length - b),
-            base_width * 2 - thickness/2 + foot_w/2
+            total_length,
+            base_width * 2
         })
 
         -- E. Ruler Plate: rotate 90 around Y to lie flat
