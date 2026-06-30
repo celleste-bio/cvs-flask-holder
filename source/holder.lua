@@ -39,7 +39,44 @@ function anchored_cube(params)
 end
 
 function anchored_cylinder(params)
+    params.fn = params.fn or 64
     return cad.cylinder(params)
+end
+
+function rounded_tab(width, length, thickness, radius, is_rear)
+    r = math.min(radius, length, width / 2)
+
+    main_rect = 0
+    side_rect = 0
+    cyl1 = 0
+    cyl2 = 0
+
+    if not is_rear then
+        main_rect = anchored_cube({x = width - 2 * r, y = length, z = thickness})
+        main_rect = cad.modify.translate(main_rect, {r, 0, 0})
+
+        side_rect = anchored_cube({x = width, y = length - r, z = thickness})
+        side_rect = cad.modify.translate(side_rect, {0, r, 0})
+
+        cyl1 = anchored_cylinder({h = thickness, r = r})
+        cyl1 = cad.modify.translate(cyl1, {r, r, 0})
+
+        cyl2 = anchored_cylinder({h = thickness, r = r})
+        cyl2 = cad.modify.translate(cyl2, {width - r, r, 0})
+    else
+        main_rect = anchored_cube({x = width - 2 * r, y = length, z = thickness})
+        main_rect = cad.modify.translate(main_rect, {r, 0, 0})
+
+        side_rect = anchored_cube({x = width, y = length - r, z = thickness})
+
+        cyl1 = anchored_cylinder({h = thickness, r = r})
+        cyl1 = cad.modify.translate(cyl1, {r, length - r, 0})
+
+        cyl2 = anchored_cylinder({h = thickness, r = r})
+        cyl2 = cad.modify.translate(cyl2, {width - r, length - r, 0})
+    end
+
+    return cad.union({main_rect, side_rect, cyl1, cyl2})
 end
 
 function get_commit_id()
@@ -146,9 +183,10 @@ function erlenmeyer_holder(dims, angle, thickness, tolerance)
     spine = anchored_cube({x = base_width, y = total_length, z = thickness})
     spine = cad.modify.translate(spine, {base_width, 0, 0})
 
-    front_tab = anchored_cube({x = dims.base_diameter, y = neck_rest_base_length, z = thickness})
+    tab_radius = utils.round(thickness, 4)
+    front_tab = rounded_tab(dims.base_diameter, neck_rest_base_length, thickness, tab_radius, false)
 
-    rear_tab = anchored_cube({x = dims.base_diameter, y = neck_rest_base_length, z = thickness})
+    rear_tab = rounded_tab(dims.base_diameter, neck_rest_base_length, thickness, tab_radius, true)
     rear_tab = cad.modify.translate(rear_tab, {0, total_length - neck_rest_base_length, 0})
 
     base_plate = cad.union({spine, front_tab, rear_tab})

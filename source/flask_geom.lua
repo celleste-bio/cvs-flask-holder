@@ -3,11 +3,12 @@
 cad = require("cad")
 
 function anchored_cylinder(params)
+    params.fn = params.fn or 64
     return cad.cylinder(params)
 end
 
 function create_torus(minor_r, major_r)
-    return cad.torus({major_r=major_r, minor_r=minor_r})
+    return cad.torus({major_r=major_r, minor_r=minor_r, major_segs=64, minor_segs=32})
 end
 
 function build_flask(dims)
