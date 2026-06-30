@@ -43,6 +43,49 @@ function anchored_cylinder(params)
     return cad.cylinder(params)
 end
 
+function rounded_cube(x, y, z, radius)
+    rc_r = math.min(radius, x / 2, y / 2)
+
+    rc_c1 = 0
+    rc_c2 = 0
+    rc_c3 = 0
+    rc_c4 = 0
+
+    rc_c1 = anchored_cylinder({h = z, r = rc_r})
+    rc_c1 = cad.modify.translate(rc_c1, {rc_r, rc_r, 0})
+
+    rc_c2 = anchored_cylinder({h = z, r = rc_r})
+    rc_c2 = cad.modify.translate(rc_c2, {x - rc_r, rc_r, 0})
+
+    rc_c3 = anchored_cylinder({h = z, r = rc_r})
+    rc_c3 = cad.modify.translate(rc_c3, {rc_r, y - rc_r, 0})
+
+    rc_c4 = anchored_cylinder({h = z, r = rc_r})
+    rc_c4 = cad.modify.translate(rc_c4, {x - rc_r, y - rc_r, 0})
+
+    return cad.hull({rc_c1, rc_c2, rc_c3, rc_c4})
+end
+
+function rounded_triangle(a, b, thickness, radius)
+    rt_r = math.min(radius, a / 4, b / 4)
+    rt_L = math.sqrt(a * a + b * b)
+
+    rt_c1 = 0
+    rt_c2 = 0
+    rt_c3 = 0
+
+    rt_c1 = anchored_cylinder({h = thickness, r = rt_r})
+    rt_c1 = cad.modify.translate(rt_c1, {rt_r, rt_r, 0})
+
+    rt_c2 = anchored_cylinder({h = thickness, r = rt_r})
+    rt_c2 = cad.modify.translate(rt_c2, {a - rt_r * (rt_L + a) / b, rt_r, 0})
+
+    rt_c3 = anchored_cylinder({h = thickness, r = rt_r})
+    rt_c3 = cad.modify.translate(rt_c3, {rt_r, b - rt_r * (rt_L + b) / a, 0})
+
+    return cad.hull({rt_c1, rt_c2, rt_c3})
+end
+
 function rounded_tab(width, length, thickness, radius, is_rear)
     r = math.min(radius, length, width / 2)
 
@@ -179,11 +222,12 @@ function erlenmeyer_holder(dims, angle, thickness, tolerance)
     base_width = utils.round(dims.base_diameter / 3, 4)
     neck_rest_base_length = utils.round(total_length / 8, 4)
 
+    tab_radius = utils.round(thickness, 4)
+
     -- 3. Base Plate Construction
-    spine = anchored_cube({x = base_width, y = total_length, z = thickness})
+    spine = rounded_cube(base_width, total_length, thickness, tab_radius)
     spine = cad.modify.translate(spine, {base_width, 0, 0})
 
-    tab_radius = utils.round(thickness, 4)
     front_tab = rounded_tab(dims.base_diameter, neck_rest_base_length, thickness, tab_radius, false)
 
     rear_tab = rounded_tab(dims.base_diameter, neck_rest_base_length, thickness, tab_radius, true)
@@ -197,11 +241,11 @@ function erlenmeyer_holder(dims, angle, thickness, tolerance)
     neck_rest_head_height = utils.round(vpro(skel.neck_radius, skel.diagonal), 4)
 
     -- Neck Rest Body
-    neck_rest_body = anchored_cube({x = skel.base_radius, y = thickness, z = neck_rest_body_height})
+    neck_rest_body = rounded_cube(skel.base_radius, thickness, neck_rest_body_height, tab_radius)
     neck_rest_body = cad.modify.translate(neck_rest_body, {skel.base_radius / 2, 0, thickness})
 
     -- Neck Rest Head
-    neck_rest_head = anchored_cube({x = skel.base_radius, y = thickness, z = neck_rest_head_height})
+    neck_rest_head = rounded_cube(skel.base_radius, thickness, neck_rest_head_height, tab_radius)
     neck_rest_head = cad.modify.rotate(neck_rest_head, {-angle, 0, 0})
     neck_rest_head = cad.modify.translate(neck_rest_head, {skel.base_radius / 2, 0, thickness + neck_rest_body_height})
 
@@ -229,11 +273,11 @@ function erlenmeyer_holder(dims, angle, thickness, tolerance)
     a = vpro(skel.base_radius, skel.diagonal)
     b = hpro(skel.base_radius, skel.diagonal)
 
-    base_rest_left = right_angle_triangle(a, b, thickness)
+    base_rest_left = rounded_triangle(a, b, thickness, tab_radius)
     base_rest_left = cad.modify.rotate(base_rest_left, {180, 270, 0})
     base_rest_left = cad.modify.translate(base_rest_left, {base_width, total_length, thickness})
 
-    base_rest_right = right_angle_triangle(a, b, thickness)
+    base_rest_right = rounded_triangle(a, b, thickness, tab_radius)
     base_rest_right = cad.modify.rotate(base_rest_right, {180, 270, 0})
     base_rest_right = cad.modify.translate(base_rest_right, {base_width * 2 - thickness, total_length, thickness})
 
@@ -249,9 +293,9 @@ function erlenmeyer_holder(dims, angle, thickness, tolerance)
     r_h = ruler_plate_height * ruler_plate_scale
     r_l = ruler_plate_length * ruler_plate_scale
 
-    ruler = right_angle_triangle(r_h, r_l, thickness)
+    ruler = rounded_triangle(r_h, r_l, thickness, tab_radius)
     ruler = cad.modify.rotate(ruler, {0, 270, 0})
-    ruler = cad.modify.translate(ruler, {skel.base_radius - thickness / 2, thickness, thickness})
+    ruler = cad.modify.translate(ruler, {skel.base_radius + thickness / 2, thickness, thickness})
 
     -- 7. Engravings
     engrave_depth = utils.round(thickness * 0.4, 4)
