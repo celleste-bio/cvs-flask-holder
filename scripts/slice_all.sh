@@ -145,6 +145,7 @@ slice_stl() {
       -o "$out" \
       --load "$SCRIPT_DIR/mk2s-machine.ini" \
       --scale 10 \
+      --rotate 90 \
       --fill-density "$INFILL_DENSITY" \
       --brim-type no_brim \
       --skirts 0 \
@@ -171,17 +172,7 @@ find models -name "holder.stl" | sort | while read -r file; do
     echo "Exported to ${dir}/holder.gcode"
 done
 
-# Slice split-print parts (part1/part2) for all models
-for n in 1 2; do
-    find models -name "holder_part${n}.stl" | sort | while read -r file; do
-        dir=$(dirname "$file")
-        size=$(basename "$dir")
-        echo "----------------------------------------"
-        echo "Slicing $size part $n from $file..."
-        slice_stl "$file" "${dir}/holder_part${n}.gcode"
-        echo "Exported to ${dir}/holder_part${n}.gcode"
-    done
-done
+
 
 echo "----------------------------------------"
 echo "All slicing complete."

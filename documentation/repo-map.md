@@ -35,15 +35,13 @@ Each subdirectory represents a specific flask model.
 - `holder.gcode`: sliced G-code for `holder.stl`.
 - `holder_assembled.stl`: all pieces assembled (fit check).
 - `holder_with_flask.stl`: holder assembled with flask inserted (combined fit check).
-- `holder_part1.stl` / `holder_part1.gcode`: split-print part 1 — base plate + supports.
-- `holder_part2.stl` / `holder_part2.gcode`: split-print part 2 — ruler plate + neck rest.
 - `*.manifest.json`: traceability metadata (dimensions, commit ID).
 
 ## Scripts
 
 ### `scripts/`
-- `model_all.sh`: batch generates all STL files for all models (flask, holder, assembled, with-flask, part1, part2).
-- `slice_all.sh`: batch slices `holder.stl`, `holder_part1.stl`, and `holder_part2.stl` into G-code.
+- `model_all.sh`: batch generates all STL files for all models (flask, holder, assembled, with-flask).
+- `slice_all.sh`: batch slices `holder.stl` into G-code.
 - `build_all.sh`: full end-to-end pipeline (model → slice → compare scenes).
 - `render_all.sh`: regenerates only `holder.stl` for all models (subset of `model_all.sh`).
 - `package_tarsons_pc_vented.sh`: bundles Tarsons release files into `distribution/`.

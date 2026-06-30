@@ -102,8 +102,7 @@ cd cvs-flask-holder
     - `holder.stl`: Printable holder in single-print layout.
     - `holder_assembled.stl`: All pieces shown assembled (fit check).
     - `holder_with_flask.stl`: Holder + flask combined (fit check).
-    - `holder_part1.stl` / `holder_part2.stl`: Split-print layout for large models.
-    - `holder.gcode` / `holder_part1.gcode` / `holder_part2.gcode`: Sliced toolpaths.
+    - `holder.gcode`: Sliced toolpaths.
     - `*.manifest.json`: Traceability metadata.
 - **`scripts/`**: Automation scripts for batch processing and build pipelines.
 

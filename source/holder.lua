@@ -136,27 +136,86 @@ function erlenmeyer_holder(dims, angle, thickness, tolerance)
     -- 1. Compute Geometry Skeleton
     skel = calculate_skeleton(dims, angle, thickness, tolerance)
 
-    -- 2. Dovetail parameters
-    dt = {
-        h = utils.round(thickness * 0.5, 4),
-        w_base = utils.round(thickness * 1.5, 4),
-        w_neck = utils.round(thickness * 0.9, 4),
-        tol = 0.015 -- 0.15 mm slide tolerance
-    }
-
-    -- 3. Calculate key lengths and positions
+    -- 2. Base Plate Parameters
     length_shift = tolerance / math.sin(math.rad(skel.diagonal))
     total_length = utils.round(skel.y_offset + length_shift, 4)
     base_width = utils.round(dims.base_diameter / 3, 4)
     neck_rest_base_length = utils.round(total_length / 8, 4)
 
-    -- 4. Load modular pieces
-    base_plate_mod = require("pieces.base_plate")
-    neck_rest_mod = require("pieces.neck_rest")
-    base_rest_mod = require("pieces.base_rest")
-    ruler_plate_mod = require("pieces.ruler_plate")
+    -- 3. Base Plate Construction
+    spine = anchored_cube({x = base_width, y = total_length, z = thickness})
+    spine = cad.modify.translate(spine, {base_width, 0, 0})
 
-    -- 5. Create engravings
+    front_tab = anchored_cube({x = dims.base_diameter, y = neck_rest_base_length, z = thickness})
+
+    rear_tab = anchored_cube({x = dims.base_diameter, y = neck_rest_base_length, z = thickness})
+    rear_tab = cad.modify.translate(rear_tab, {0, total_length - neck_rest_base_length, 0})
+
+    base_plate = cad.union({spine, front_tab, rear_tab})
+
+    -- 4. Neck Rest Tower Construction
+    neck_bottom_z_at_target = skel.neck_rest_target.z - skel.vertical_radius_neck
+    neck_rest_body_height = utils.round(neck_bottom_z_at_target - tolerance - thickness, 4)
+    neck_rest_head_height = utils.round(vpro(skel.neck_radius, skel.diagonal), 4)
+
+    -- Neck Rest Body
+    neck_rest_body = anchored_cube({x = skel.base_radius, y = thickness, z = neck_rest_body_height})
+    neck_rest_body = cad.modify.translate(neck_rest_body, {skel.base_radius / 2, 0, thickness})
+
+    -- Neck Rest Head
+    neck_rest_head = anchored_cube({x = skel.base_radius, y = thickness, z = neck_rest_head_height})
+    neck_rest_head = cad.modify.rotate(neck_rest_head, {-angle, 0, 0})
+    neck_rest_head = cad.modify.translate(neck_rest_head, {skel.base_radius / 2, 0, thickness + neck_rest_body_height})
+
+    -- Neck Cutout
+    cutout_radius = skel.neck_radius + tolerance
+    cutout_height_len = dims.neck_height * 2
+    cutout = anchored_cylinder({h = cutout_height_len, r1 = cutout_radius, r2 = cutout_radius})
+    cutout = cad.modify.rotate(cutout, {skel.diagonal, 0, 0})
+
+    start_shift = dims.neck_height * 0.5
+    start_y = skel.neck_rest_target.y - start_shift * skel.axis_y_comp
+    start_z = skel.neck_rest_target.z - start_shift * skel.axis_z_comp
+    cutout = cad.modify.translate(cutout, {skel.base_radius, start_y, start_z})
+
+    cutout_top = anchored_cylinder({h = cutout_height_len, r1 = cutout_radius * 1.2, r2 = cutout_radius * 1.2})
+    cutout_top = cad.modify.rotate(cutout_top, {skel.diagonal, 0, 0})
+    cutout_top = cad.modify.translate(cutout_top, {skel.base_radius, start_y, start_z + skel.neck_radius})
+
+    full_cutout = cad.hull({cutout, cutout_top})
+
+    neck_rest = cad.union({neck_rest_body, neck_rest_head})
+    neck_rest = cad.difference({neck_rest, full_cutout})
+
+    -- 5. Base Rest Supports (Left & Right)
+    a = vpro(skel.base_radius, skel.diagonal)
+    b = hpro(skel.base_radius, skel.diagonal)
+
+    base_rest_left = right_angle_triangle(a, b, thickness)
+    base_rest_left = cad.modify.rotate(base_rest_left, {180, 270, 0})
+    base_rest_left = cad.modify.translate(base_rest_left, {base_width, total_length, thickness})
+
+    base_rest_right = right_angle_triangle(a, b, thickness)
+    base_rest_right = cad.modify.rotate(base_rest_right, {180, 270, 0})
+    base_rest_right = cad.modify.translate(base_rest_right, {base_width * 2 - thickness, total_length, thickness})
+
+    -- 6. Ruler Plate Construction
+    ruler_width_adjustment = tolerance / math.sin(math.rad(skel.diagonal))
+    ruler_plate_height = neck_rest_body_height - thickness
+    ruler_plate_length = dims.chest_height - thickness - hpro(thickness, -angle) - ruler_width_adjustment
+    ruler_plate_clearance = thickness + tolerance
+    ruler_plate_scale = math.max(
+        (ruler_plate_height - ruler_plate_clearance) / ruler_plate_height,
+        thickness / ruler_plate_height
+    )
+    r_h = ruler_plate_height * ruler_plate_scale
+    r_l = ruler_plate_length * ruler_plate_scale
+
+    ruler = right_angle_triangle(r_h, r_l, thickness)
+    ruler = cad.modify.rotate(ruler, {0, 270, 0})
+    ruler = cad.modify.translate(ruler, {skel.base_radius - thickness / 2, thickness, thickness})
+
+    -- 7. Engravings
     engrave_depth = utils.round(thickness * 0.4, 4)
     commit_id = get_commit_id()
     flask_id = get_engraving_id(dims)
@@ -171,126 +230,35 @@ function erlenmeyer_holder(dims, angle, thickness, tolerance)
     commit_x = utils.round(base_width / 2 - commit_width / 2, 4)
     flask_x = utils.round(2.5 * base_width - flask_width / 2, 4)
 
-    commit_mark = create_engraving_mark(
-        commit_id,
-        text_size,
-        engrave_depth
-    )
+    commit_mark = create_engraving_mark(commit_id, text_size, engrave_depth)
     commit_mark = cad.modify.translate(commit_mark, {
         commit_x,
         utils.round(neck_rest_base_length / 2, 4),
         -0.01
     })
 
-    flask_mark = create_engraving_mark(
-        flask_id,
-        text_size,
-        engrave_depth
-    )
+    flask_mark = create_engraving_mark(flask_id, text_size, engrave_depth)
     flask_mark = cad.modify.translate(flask_mark, {
         flask_x,
         utils.round(neck_rest_base_length / 2, 4),
         -0.01
     })
 
-    -- 6. Build pieces in assembled coordinates
-    base_plate = base_plate_mod.build_base_plate(dims, thickness, total_length, neck_rest_base_length, base_width, skel, dt, commit_mark, flask_mark)
-    neck_tower = neck_rest_mod.build_neck_rest(dims, angle, thickness, tolerance, skel, dt, total_length, neck_rest_base_length)
-    base_rest_left = base_rest_mod.build_left(dims, thickness, total_length, neck_rest_base_length, base_width, skel, dt)
-    base_rest_right = base_rest_mod.build_right(dims, thickness, total_length, neck_rest_base_length, base_width, skel, dt)
-    ruler = ruler_plate_mod.build_ruler_plate(dims, thickness, tolerance, angle, skel, dt, neck_rest_base_length)
+    -- 8. Combine and Engrave
+    holder = cad.union({
+        base_plate,
+        neck_rest,
+        base_rest_left,
+        base_rest_right,
+        ruler
+    })
+    holder = cad.difference({
+        holder,
+        commit_mark,
+        flask_mark
+    })
 
-    with_flask = env_truthy(os.getenv("CVS_WITH_FLASK"))
-    assembled_only = env_truthy(os.getenv("CVS_ASSEMBLED"))
-
-    if with_flask or assembled_only then
-        -- Return assembled model
-        neck_tower_assembled = cad.modify.translate(neck_tower, {0, 0, thickness})
-        base_rest_left_assembled = cad.modify.translate(base_rest_left, {0, 0, thickness})
-        base_rest_right_assembled = cad.modify.translate(base_rest_right, {0, 0, thickness})
-        return cad.union({base_plate, neck_tower_assembled, base_rest_left_assembled, base_rest_right_assembled, ruler})
-    else
-        -- Return print layout (laying all parts flat on Z=0 plane)
-        
-        -- A. Base Plate: already at Z=0 to thickness
-        base_plate_print = base_plate
-
-        -- B. Neck Rest: rotate 90 around X to lie flat
-        neck_bottom_z_at_target = skel.neck_rest_target.z - skel.vertical_radius_neck
-        neck_rest_body_height = utils.round(neck_bottom_z_at_target - tolerance - thickness, 4)
-        neck_rest_head_height = utils.round(vpro(skel.neck_radius, skel.diagonal), 4)
-        neck_total_height = neck_rest_body_height + neck_rest_head_height * math.cos(math.rad(angle)) + thickness * math.sin(math.rad(angle))
-        neck_flat = cad.modify.rotate(neck_tower, {90, 0, 0})
-        neck_flat = cad.modify.translate(neck_flat, {
-            -skel.base_radius / 2,
-            neck_total_height,
-            0
-        })
-
-        -- C. Left Support: rotate 90 around Y to lie flat; foot outer face at Z=0
-        a = vpro(skel.base_radius, skel.diagonal)
-        b = hpro(skel.base_radius, skel.diagonal)
-        left_flat = cad.modify.rotate(base_rest_left, {0, 90, 0})
-        left_flat = cad.modify.translate(left_flat, {
-            dt.h,
-            -(total_length - b),
-            base_width + thickness
-        })
-
-        -- D. Right Support: rotate 90 around Y, mirror in Y for symmetric layout
-        right_flat = cad.modify.rotate(base_rest_right, {0, 90, 0})
-        right_flat = cad.modify.scale(right_flat, {1, -1, 1})
-        right_flat = cad.modify.translate(right_flat, {
-            dt.h,
-            total_length,
-            base_width * 2
-        })
-
-        -- E. Ruler Plate: rotate 90 around Y to lie flat
-        ruler_width_adjustment = tolerance / math.sin(math.rad(skel.diagonal))
-        ruler_plate_height = neck_rest_body_height - thickness
-        ruler_plate_length = dims.chest_height - thickness - hpro(thickness, -angle) - ruler_width_adjustment
-        ruler_plate_clearance = thickness + tolerance
-        ruler_plate_scale = math.max(
-            (ruler_plate_height - ruler_plate_clearance) / ruler_plate_height,
-            thickness / ruler_plate_height
-        )
-        r_h = ruler_plate_height * ruler_plate_scale
-        r_l = ruler_plate_length * ruler_plate_scale
-
-        ruler_flat = cad.modify.rotate(ruler, {0, 90, 0})
-        ruler_flat = cad.modify.translate(ruler_flat, {
-            -(thickness - dt.h),
-            -(thickness - dt.h),
-            skel.base_radius + dt.w_base/2
-        })
-
-        -- Arrange in positive quadrant with a constant gap (0.3cm = 3mm)
-        gap = 0.3
-
-        -- Split-print support via CVS_PART=1/2 for models exceeding the MK2S 250x210mm bed
-        cvs_part = os.getenv("CVS_PART")
-
-        if cvs_part == "1" then
-            -- Base plate + both supports to its right, stacked in Y
-            left_print1 = cad.modify.translate(left_flat, {dims.base_diameter + gap, 0, 0})
-            right_print1 = cad.modify.translate(right_flat, {dims.base_diameter + gap, b + gap, 0})
-            return cad.union({base_plate_print, left_print1, right_print1})
-
-        elseif cvs_part == "2" then
-            -- Ruler + neck rest side by side in X
-            neck_print2 = cad.modify.translate(neck_flat, {r_h + dt.h + gap, 0, 0})
-            return cad.union({ruler_flat, neck_print2})
-        end
-
-        -- Default: full combined layout
-        neck_print = cad.modify.translate(neck_flat, {dims.base_diameter + gap, 2 * b + 2 * gap, 0})
-        left_print = cad.modify.translate(left_flat, {dims.base_diameter + gap, 0, 0})
-        right_print = cad.modify.translate(right_flat, {dims.base_diameter + gap, b + gap, 0})
-        max_width = math.max(a + dt.h, skel.base_radius)
-        ruler_print = cad.modify.translate(ruler_flat, {dims.base_diameter + gap + max_width + gap, 0, 0})
-        return cad.union({base_plate_print, neck_print, left_print, right_print, ruler_print})
-    end
+    return holder
 end
 
 function resolve_measurements_path()

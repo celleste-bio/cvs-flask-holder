@@ -22,8 +22,6 @@ This uses **Luametry** to produce:
 - `holder.stl` — printable apparatus in single-print layout
 - `holder_assembled.stl` — all pieces shown assembled (fit check)
 - `holder_with_flask.stl` — holder assembled with flask inserted (combined fit check)
-- `holder_part1.stl` — split-print part 1: base plate + both supports
-- `holder_part2.stl` — split-print part 2: ruler plate + neck rest
 - `*.manifest.json` — traceability metadata (dimensions, commit ID)
 
 ## Slicing Workflow
@@ -46,24 +44,6 @@ Run the full pipeline to regenerate everything from scratch:
 ./scripts/build_all.sh
 ```
 This is the recommended path after making changes to `source/` geometry or `measurements.yaml` definitions.
-
-## Split-Print Workflow
-
-For larger models (e.g. `2000ml`, `tarsons_pc_vented_2000ml`) that exceed the MK2S 250×210 mm build plate, the holder is split into two separate print jobs:
-
-| File | Contents | Typical size |
-|---|---|---|
-| `holder_part1.stl` | Base plate + both angled supports | ≤ 241×213 mm |
-| `holder_part2.stl` | Ruler plate + neck rest | ≤ 237×185 mm |
-
-Both files are generated automatically by `model_all.sh` and sliced by `slice_all.sh`. They are produced for all models (even ones that fit in a single print) so the workflow is uniform.
-
-To generate split parts for a single model manually:
-
-```bash
-CVS_MEASUREMENTS=models/2000ml/measurements.yaml CVS_PART=1 luametry export source/holder.lua -o holder_part1.stl
-CVS_MEASUREMENTS=models/2000ml/measurements.yaml CVS_PART=2 luametry export source/holder.lua -o holder_part2.stl
-```
 
 ## Packaging Workflow
 
