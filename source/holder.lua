@@ -74,8 +74,7 @@ function rounded_triangle(a, b, thickness, radius)
     rt_c2 = 0
     rt_c3 = 0
 
-    rt_c1 = anchored_cylinder({h = thickness, r = rt_r})
-    rt_c1 = cad.modify.translate(rt_c1, {rt_r, rt_r, 0})
+    rt_c1 = cad.cube({x = 0.001, y = 0.001, z = thickness})
 
     rt_c2 = anchored_cylinder({h = thickness, r = rt_r})
     rt_c2 = cad.modify.translate(rt_c2, {a - rt_r * (rt_L + a) / b, rt_r, 0})
