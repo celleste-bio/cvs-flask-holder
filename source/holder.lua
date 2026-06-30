@@ -43,84 +43,6 @@ function anchored_cylinder(params)
     return cad.cylinder(params)
 end
 
-function rounded_cube(x, y, z, radius)
-    rc_r = math.min(radius, x / 2, y / 2)
-
-    rc_c1 = 0
-    rc_c2 = 0
-    rc_c3 = 0
-    rc_c4 = 0
-
-    rc_c1 = anchored_cylinder({h = z, r = rc_r})
-    rc_c1 = cad.modify.translate(rc_c1, {rc_r, rc_r, 0})
-
-    rc_c2 = anchored_cylinder({h = z, r = rc_r})
-    rc_c2 = cad.modify.translate(rc_c2, {x - rc_r, rc_r, 0})
-
-    rc_c3 = anchored_cylinder({h = z, r = rc_r})
-    rc_c3 = cad.modify.translate(rc_c3, {rc_r, y - rc_r, 0})
-
-    rc_c4 = anchored_cylinder({h = z, r = rc_r})
-    rc_c4 = cad.modify.translate(rc_c4, {x - rc_r, y - rc_r, 0})
-
-    return cad.hull({rc_c1, rc_c2, rc_c3, rc_c4})
-end
-
-function rounded_triangle(a, b, thickness, radius)
-    rt_r = math.min(radius, a / 4, b / 4)
-    rt_L = math.sqrt(a * a + b * b)
-
-    rt_c1 = 0
-    rt_c2 = 0
-    rt_c3 = 0
-
-    rt_c1 = cad.cube({x = 0.001, y = 0.001, z = thickness})
-
-    rt_c2 = anchored_cylinder({h = thickness, r = rt_r})
-    rt_c2 = cad.modify.translate(rt_c2, {a - rt_r * (rt_L + a) / b, rt_r, 0})
-
-    rt_c3 = anchored_cylinder({h = thickness, r = rt_r})
-    rt_c3 = cad.modify.translate(rt_c3, {rt_r, b - rt_r * (rt_L + b) / a, 0})
-
-    return cad.hull({rt_c1, rt_c2, rt_c3})
-end
-
-function rounded_tab(width, length, thickness, radius, is_rear)
-    r = math.min(radius, length, width / 2)
-
-    main_rect = 0
-    side_rect = 0
-    cyl1 = 0
-    cyl2 = 0
-
-    if not is_rear then
-        main_rect = anchored_cube({x = width - 2 * r, y = length, z = thickness})
-        main_rect = cad.modify.translate(main_rect, {r, 0, 0})
-
-        side_rect = anchored_cube({x = width, y = length - r, z = thickness})
-        side_rect = cad.modify.translate(side_rect, {0, r, 0})
-
-        cyl1 = anchored_cylinder({h = thickness, r = r})
-        cyl1 = cad.modify.translate(cyl1, {r, r, 0})
-
-        cyl2 = anchored_cylinder({h = thickness, r = r})
-        cyl2 = cad.modify.translate(cyl2, {width - r, r, 0})
-    else
-        main_rect = anchored_cube({x = width - 2 * r, y = length, z = thickness})
-        main_rect = cad.modify.translate(main_rect, {r, 0, 0})
-
-        side_rect = anchored_cube({x = width, y = length - r, z = thickness})
-
-        cyl1 = anchored_cylinder({h = thickness, r = r})
-        cyl1 = cad.modify.translate(cyl1, {r, length - r, 0})
-
-        cyl2 = anchored_cylinder({h = thickness, r = r})
-        cyl2 = cad.modify.translate(cyl2, {width - r, length - r, 0})
-    end
-
-    return cad.union({main_rect, side_rect, cyl1, cyl2})
-end
-
 function get_commit_id()
     commit_id = os.getenv("CVS_COMMIT_ID")
     if commit_id == nil or commit_id == "" then
@@ -151,10 +73,6 @@ function create_engraving_mark(label, text_size, depth)
     return mark
 end
 
---------------------------------------------------------------------------------
--- SKELETON CALCULATOR
--- Single Source of Truth for all geometric positions
---------------------------------------------------------------------------------
 function calculate_skeleton(dims, angle, thickness, tolerance)
     s = {}
 
@@ -221,82 +139,84 @@ function erlenmeyer_holder(dims, angle, thickness, tolerance)
     base_width = utils.round(dims.base_diameter / 3, 4)
     neck_rest_base_length = utils.round(total_length / 8, 4)
 
-    tab_radius = utils.round(thickness, 4)
+    solid_parts = {}
 
-    -- 3. Base Plate Construction
-    spine = rounded_cube(base_width, total_length, thickness, tab_radius)
+    -- 3. Base Plate Construction (Sharp Components)
+    spine = anchored_cube({x = base_width, y = total_length, z = thickness})
     spine = cad.modify.translate(spine, {base_width, 0, 0})
+    table.insert(solid_parts, spine)
 
-    front_tab = rounded_tab(dims.base_diameter, neck_rest_base_length, thickness, tab_radius, false)
+    front_tab = anchored_cube({x = dims.base_diameter, y = neck_rest_base_length, z = thickness})
+    table.insert(solid_parts, front_tab)
 
-    rear_tab = rounded_tab(dims.base_diameter, neck_rest_base_length, thickness, tab_radius, true)
+    rear_tab = anchored_cube({x = dims.base_diameter, y = neck_rest_base_length, z = thickness})
     rear_tab = cad.modify.translate(rear_tab, {0, total_length - neck_rest_base_length, 0})
+    table.insert(solid_parts, rear_tab)
 
-    base_plate = cad.union({spine, front_tab, rear_tab})
-
-    -- 4. Neck Rest Tower Construction
+    -- 4. Neck Rest Tower Construction (Sharp Components)
     neck_bottom_z_at_target = skel.neck_rest_target.z - skel.vertical_radius_neck
     neck_rest_body_height = utils.round(neck_bottom_z_at_target - tolerance - thickness, 4)
     neck_rest_head_height = utils.round(vpro(skel.neck_radius, skel.diagonal), 4)
 
     -- Neck Rest Body
-    neck_rest_body = rounded_cube(skel.base_radius, thickness, neck_rest_body_height, tab_radius)
-    neck_rest_body = cad.modify.translate(neck_rest_body, {skel.base_radius / 2, 0, thickness})
+    if neck_rest_body_height > 0 then
+        neck_rest_body = anchored_cube({x = skel.base_radius, y = thickness, z = neck_rest_body_height})
+        neck_rest_body = cad.modify.translate(neck_rest_body, {skel.base_radius / 2, 0, thickness})
+        table.insert(solid_parts, neck_rest_body)
+    end
 
-    -- Neck Rest Head
-    neck_rest_head = rounded_cube(skel.base_radius, thickness, neck_rest_head_height, tab_radius)
+    -- Neck Rest Head (always positive)
+    neck_rest_head = anchored_cube({x = skel.base_radius, y = thickness, z = neck_rest_head_height})
     neck_rest_head = cad.modify.rotate(neck_rest_head, {-angle, 0, 0})
-    neck_rest_head = cad.modify.translate(neck_rest_head, {skel.base_radius / 2, 0, thickness + neck_rest_body_height})
-
-    -- Neck Cutout
-    cutout_radius = skel.neck_radius + tolerance
-    cutout_height_len = dims.neck_height * 2
-    cutout = anchored_cylinder({h = cutout_height_len, r1 = cutout_radius, r2 = cutout_radius})
-    cutout = cad.modify.rotate(cutout, {skel.diagonal, 0, 0})
-
-    start_shift = dims.neck_height * 0.5
-    start_y = skel.neck_rest_target.y - start_shift * skel.axis_y_comp
-    start_z = skel.neck_rest_target.z - start_shift * skel.axis_z_comp
-    cutout = cad.modify.translate(cutout, {skel.base_radius, start_y, start_z})
-
-    cutout_top = anchored_cylinder({h = cutout_height_len, r1 = cutout_radius * 1.2, r2 = cutout_radius * 1.2})
-    cutout_top = cad.modify.rotate(cutout_top, {skel.diagonal, 0, 0})
-    cutout_top = cad.modify.translate(cutout_top, {skel.base_radius, start_y, start_z + skel.neck_radius})
-
-    full_cutout = cad.hull({cutout, cutout_top})
-
-    neck_rest = cad.union({neck_rest_body, neck_rest_head})
-    neck_rest = cad.difference({neck_rest, full_cutout})
+    actual_body_height = math.max(0, neck_rest_body_height)
+    neck_rest_head = cad.modify.translate(neck_rest_head, {skel.base_radius / 2, 0, thickness + actual_body_height})
+    table.insert(solid_parts, neck_rest_head)
 
     -- 5. Base Rest Supports (Left & Right)
     a = vpro(skel.base_radius, skel.diagonal)
     b = hpro(skel.base_radius, skel.diagonal)
 
-    base_rest_left = rounded_triangle(a, b, thickness, tab_radius)
+    base_rest_left = right_angle_triangle(a, b, thickness)
     base_rest_left = cad.modify.rotate(base_rest_left, {180, 270, 0})
     base_rest_left = cad.modify.translate(base_rest_left, {base_width, total_length, thickness})
+    table.insert(solid_parts, base_rest_left)
 
-    base_rest_right = rounded_triangle(a, b, thickness, tab_radius)
+    base_rest_right = right_angle_triangle(a, b, thickness)
     base_rest_right = cad.modify.rotate(base_rest_right, {180, 270, 0})
     base_rest_right = cad.modify.translate(base_rest_right, {base_width * 2 - thickness, total_length, thickness})
+    table.insert(solid_parts, base_rest_right)
 
     -- 6. Ruler Plate Construction
     ruler_width_adjustment = tolerance / math.sin(math.rad(skel.diagonal))
     ruler_plate_height = neck_rest_body_height - thickness
     ruler_plate_length = dims.chest_height - thickness - hpro(thickness, -angle) - ruler_width_adjustment
-    ruler_plate_clearance = thickness + tolerance
-    ruler_plate_scale = math.max(
-        (ruler_plate_height - ruler_plate_clearance) / ruler_plate_height,
-        thickness / ruler_plate_height
-    )
-    r_h = ruler_plate_height * ruler_plate_scale
-    r_l = ruler_plate_length * ruler_plate_scale
 
-    ruler = rounded_triangle(r_h, r_l, thickness, tab_radius)
-    ruler = cad.modify.rotate(ruler, {0, 270, 0})
-    ruler = cad.modify.translate(ruler, {skel.base_radius + thickness / 2, thickness, thickness})
+    if ruler_plate_height > 0 and ruler_plate_length > 0 then
+        ruler_plate_clearance = thickness + tolerance
+        ruler_plate_scale = math.max(
+            (ruler_plate_height - ruler_plate_clearance) / ruler_plate_height,
+            thickness / ruler_plate_height
+        )
+        r_h = ruler_plate_height * ruler_plate_scale
+        r_l = ruler_plate_length * ruler_plate_scale
 
-    -- 7. Engravings
+        ruler = right_angle_triangle(r_h, r_l, thickness)
+        ruler = cad.modify.rotate(ruler, {0, 270, 0})
+        ruler = cad.modify.translate(ruler, {skel.base_radius + thickness / 2, thickness, thickness})
+        table.insert(solid_parts, ruler)
+    end
+
+    -- Union solid body parts together
+    solid_body = cad.union(solid_parts)
+
+    -- 7. Apply General Rounding (radius = 0.1cm / 1mm)
+    round_r = 0.1
+    rounded_body = cad.round(solid_body, round_r, 16)
+
+    -- 8. Trim the bottom at Z = 0 to preserve print-bed flatness
+    trimmed_body = cad.combine.trim(rounded_body, {0, 0, 1}, 0)
+
+    -- 9. Engravings and Cutout subtraction
     engrave_depth = utils.round(thickness * 0.4, 4)
     commit_id = get_commit_id()
     flask_id = get_engraving_id(dims)
@@ -325,19 +245,33 @@ function erlenmeyer_holder(dims, angle, thickness, tolerance)
         -0.01
     })
 
-    -- 8. Combine and Engrave
-    holder = cad.union({
-        base_plate,
-        neck_rest,
-        base_rest_left,
-        base_rest_right,
-        ruler
-    })
+    -- Neck Cutout
+    cutout_radius = skel.neck_radius + tolerance
+    cutout_height_len = dims.neck_height * 2
+    cutout = anchored_cylinder({h = cutout_height_len, r1 = cutout_radius, r2 = cutout_radius})
+    cutout = cad.modify.rotate(cutout, {skel.diagonal, 0, 0})
+
+    start_shift = dims.neck_height * 0.5
+    start_y = skel.neck_rest_target.y - start_shift * skel.axis_y_comp
+    start_z = skel.neck_rest_target.z - start_shift * skel.axis_z_comp
+    cutout = cad.modify.translate(cutout, {skel.base_radius, start_y, start_z})
+
+    cutout_top = anchored_cylinder({h = cutout_height_len, r1 = cutout_radius * 1.2, r2 = cutout_radius * 1.2})
+    cutout_top = cad.modify.rotate(cutout_top, {skel.diagonal, 0, 0})
+    cutout_top = cad.modify.translate(cutout_top, {skel.base_radius, start_y, start_z + skel.neck_radius})
+
+    full_cutout = cad.hull({cutout, cutout_top})
+
+    -- Difference the cutouts and engravings from the rounded solid body
     holder = cad.difference({
-        holder,
+        trimmed_body,
+        full_cutout,
         commit_mark,
         flask_mark
     })
+
+    -- Translate to align with the positive quadrant (X_min = 0, Y_min = 0)
+    holder = cad.modify.translate(holder, {round_r, round_r, 0})
 
     return holder
 end
@@ -374,11 +308,11 @@ holder = erlenmeyer_holder(dims, angle, thickness, tolerance)
 
 with_flask = env_truthy(os.getenv("CVS_WITH_FLASK"))
 if with_flask then
-    x_offset = utils.round(dims.base_diameter / 2, 4)
+    x_offset = utils.round(dims.base_diameter / 2, 4) + 0.1
     y_offset = utils.round(
         hpro(dims.body_height, angle) + hpro(dims.neck_diameter / 2, 90 - angle) + hpro(thickness, angle),
         4
-    )
+    ) + 0.1
     z_offset = utils.round(thickness + tolerance + vpro(dims.base_diameter / 2, 90 - angle), 4)
 
     erlenmeyer = cad.modify.rotate(erlenmeyer, {90 - angle, 0, 0})
