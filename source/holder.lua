@@ -1,66 +1,81 @@
--- modeling parametric erlenmeyer flask holder
+-- Luametry entry: build the holder model from a measurements YAML.
 
--- Setup paths for dependencies
-local script_dir = arg[0]:match("(.*[/\\])") or "./"
-package.path = script_dir .. "../dependencies/lua-utils/src/?.lua;" .. script_dir .. "../dependencies/lua-openscad/src/?.lua;" .. package.path
+script_dir = string.match(debug.getinfo(1).source, "@(.*[/\\])") or "./"
+bootstrap = dofile(script_dir .. "bootstrap.lua")
+bootstrap.configure_imports(script_dir)
 
-require("utils").using("utils")
-using("paths")
-
-local cad = require("openscad")
-
-local script_dir = get_script_dir()
-dofile(joinpath(script_dir, "flask.lua")) -- import flask function
+utils = require("lib.utils")
+cad = require("cad")
+flask_geom = require("flask_geom")
 
 -- Helper: Horizontal Projection
-local function hpro(length, angle)
+function hpro(length, angle)
     return length * math.cos(math.rad(angle))
 end
 
 -- Helper: Vertical Projection
-local function vpro(length, angle)
+function vpro(length, angle)
     return length * math.sin(math.rad(angle))
 end
 
-local function scad_string(value)
-    return string.format("%q", value)
-end
-
-local function get_commit_id()
-    local repo_dir = joinpath(get_script_dir(), "..")
-    local command = string.format("git -C %s rev-parse --short=7 HEAD 2>/dev/null", scad_string(repo_dir))
-    local handle = io.popen(command)
-    if not handle then
-        return "manual"
+function right_angle_triangle(a, b, thickness)
+    if type(a) != "number" or type(b) != "number" or type(thickness) != "number" then
+        error("right_angle_triangle(a, b, thickness) requires numeric inputs.")
+    end
+    if a <= 0 or b <= 0 or thickness <= 0 then
+        error("Triangle side lengths and thickness must be positive.")
     end
 
-    local commit_id = handle:read("*a") or ""
-    handle:close()
-    commit_id = commit_id:gsub("%s+$", "")
-
-    if commit_id == "" then
-        return "manual"
-    end
-
-    return commit_id
+    return cad.extrude({
+        {0, 0},
+        {a, 0},
+        {0, b},
+        {0, 0}
+    }, thickness)
 end
 
-local function get_engraving_id(dims)
-    local engraving_id = dims.engraving_id or dims.flask_id
-    if not engraving_id or engraving_id == "" then
+function anchored_cube(params)
+    return cad.cube(params)
+end
+
+function anchored_cylinder(params)
+    params.fn = params.fn or 64
+    return cad.cylinder(params)
+end
+
+function get_commit_id()
+    commit_id = os.getenv("CVS_COMMIT_ID")
+    if commit_id == nil or commit_id == "" then
+        return "manual"
+    end
+    return tostring(commit_id)
+end
+
+function get_engraving_id(dims)
+    engraving_id = dims.engraving_id or dims.flask_id
+    if engraving_id == nil or engraving_id == "" then
         error("measurements.yaml must define engraving_id or flask_id for holder engraving")
     end
 
     return tostring(engraving_id)
 end
 
---------------------------------------------------------------------------------
--- SKELETON CALCULATOR
--- Single Source of Truth for all geometric positions
---------------------------------------------------------------------------------
-local function calculate_skeleton(dims, angle, thickness, tolerance)
-    local s = {}
-    
+function create_engraving_mark(label, text_size, depth)
+    mark = cad.text(label, {
+        h = text_size,
+        t = 1.5,
+        z = depth,
+        rounded = true
+    })
+    mark = cad.modify.translate(mark, {0, -text_size / 2, depth / 2})
+    mark = cad.modify.scale(mark, {-1, 1, 1})
+    mark = cad.modify.rotate(mark, {0, 0, 180})
+    return mark
+end
+
+function calculate_skeleton(dims, angle, thickness, tolerance)
+    s = {}
+
     -- Inputs
     s.angle = angle
     s.diagonal = 90 - angle
@@ -69,44 +84,28 @@ local function calculate_skeleton(dims, angle, thickness, tolerance)
     s.dims = dims
     s.neck_radius = dims.neck_diameter / 2
     s.base_radius = dims.base_diameter / 2
-    
+
     -- 1. Flask Axis Geometry (Projected in Y-Z plane)
-    -- Angle is tilt from Horizontal (0 = lying down, 90 = standing up).
-    -- User's "angle" (e.g. 30) is typically from Horizontal based on legacy hpro(cos)/vpro(sin).
-    
-    -- 1. Flask Axis Geometry (Projected in Y-Z plane)
-    -- Angle is tilt from Horizontal.
-    -- Flask is rotated by `diagonal` (90-angle) around X.
-    -- Orientation: Starts at +Y (y_offset), points towards -Y (0).
-    -- Z component is Positive (Slope Up).
-    
-    local rad_angle = math.rad(s.angle)
+    rad_angle = math.rad(s.angle)
     s.axis_y_comp = -math.cos(rad_angle) -- Negative Y direction
     s.axis_z_comp = math.sin(rad_angle)  -- Positive Z direction
-    s.axis_slope  = s.axis_z_comp / s.axis_y_comp
-    
+    s.axis_slope = s.axis_z_comp / s.axis_y_comp
+
     -- 2. Vertical Clearance (Z-Offset)
-    -- Lowest point of rim circle relative to center.
-    -- Vertical Drop = Radius * cos(angle).
     s.vertical_radius_base = s.base_radius * math.cos(rad_angle)
     s.vertical_radius_neck = s.neck_radius * math.cos(rad_angle)
-    
-    -- Lowest point of the BASE Rim relative to its center:
-    -- Z_lowest = CenterZ - s.vertical_radius_base
-    -- We want Z_lowest = thickness + tolerance.
-    -- So CenterZ = thickness + tolerance + s.vertical_radius_base
-    s.z_offset = round(thickness + tolerance + s.vertical_radius_base, 4)
-    
+    s.z_offset = utils.round(thickness + tolerance + s.vertical_radius_base, 4)
+
     -- 3. Horizontal Positioning (Y-Offset)
-    -- Base starts here (Positive Y). Neck is towards 0.
-    s.y_offset = round(hpro(dims.body_height, angle) + hpro(s.neck_radius, s.diagonal) + hpro(thickness, angle), 4)
-    -- Note: This legacy part might need tuning but let's trust "angle" is correct for hpro now.
-    
-    -- 4. Key Point: BASE CENTER (The origin of the flask)
-    s.base_center = {x=0, y=s.y_offset, z=s.z_offset}
-    
+    s.y_offset = utils.round(
+        hpro(dims.body_height, angle) + hpro(s.neck_radius, s.diagonal) + hpro(thickness, angle),
+        4
+    )
+
+    -- 4. Key Point: BASE CENTER
+    s.base_center = {x = 0, y = s.y_offset, z = s.z_offset}
+
     -- 5. Key Point: SHOULDER (Start of Neck)
-    -- Distance along axis = body_height
     s.shoulder = {
         x = 0,
         y = s.base_center.y + dims.body_height * s.axis_y_comp,
@@ -119,217 +118,206 @@ local function calculate_skeleton(dims, angle, thickness, tolerance)
         y = s.shoulder.y - tolerance * s.axis_y_comp,
         z = s.shoulder.z - tolerance * s.axis_z_comp
     }
-    
+
     -- 6. Key Point: NECK END (Rim)
-    -- Distance along axis = body_height + neck_height
     s.neck_end = {
         x = 0,
         y = s.shoulder.y + dims.neck_height * s.axis_y_comp,
         z = s.shoulder.z + dims.neck_height * s.axis_z_comp
     }
-    
+
     return s
 end
 
 function erlenmeyer_holder(dims, angle, thickness, tolerance)
     -- 1. Compute Geometry Skeleton
-    local skel = calculate_skeleton(dims, angle, thickness, tolerance)
-    
-    -- 2. Base Block Construction
-    -- The Base Rest needs to barely touch the bottom of the flask base.
-    -- We'll calculate the horizontal position where the base "ends".
-    -- The lowest point of the flask base is also the furthest "back" in Y if we look at the circle?
-    -- No, strictly:
-    -- Gap required = tolerance.
-    -- Shift amount along Y to create that gap perpendicular to the surface?
-    -- For a flat block against a curved/tilted base, it's simpler.
-    -- Original logic: length_shift = tolerance / sin(diagonal)
-    
-    local length_shift = tolerance / math.sin(math.rad(skel.diagonal))
-    local total_length = round(skel.y_offset + length_shift, 4)
-    local base_width = round(dims.base_diameter / 3, 4)
-    local base = cad.create("cube", {base_width, total_length, thickness})
-    base = cad.transform("translate", base, {base_width, 0, 0})
+    skel = calculate_skeleton(dims, angle, thickness, tolerance)
 
-    -- 3. Neck Rest Construction
-    -- We derive the position of the Neck Rest from the SHOULDER point in the skeleton.
-    
-    -- A. Neck Rest Base
-    local neck_rest_base_length = round(total_length / 8, 4)
-    local neck_rest_base = cad.create("cube", {dims.base_diameter, neck_rest_base_length, thickness})
-    -- (Positioning handled at end relative to origin)
+    -- 2. Base Plate Parameters
+    length_shift = tolerance / math.sin(math.rad(skel.diagonal))
+    total_length = utils.round(skel.y_offset + length_shift, 4)
+    base_width = utils.round(dims.base_diameter / 3, 4)
+    neck_rest_base_length = utils.round(total_length / 8, 4)
 
-    -- B. Neck Rest Body (The vertical tower)
-    -- Height: Calculated to support the neck exactly at the correct Z level.
-    
-    -- Support the neck slightly back from the shoulder so the rest catches the conical transition.
-    local neck_bottom_z_at_target = skel.neck_rest_target.z - skel.vertical_radius_neck
-    
-    -- Set Body Height to support this, minus tolerance.
-    local neck_rest_body_height = round(neck_bottom_z_at_target - tolerance - thickness, 4)
-    
-    -- Head Height (Thickness of the clamp):
-    -- Keep original design: proportional to radius.
-    local neck_rest_head_height = round(vpro(skel.neck_radius, skel.diagonal), 4)
+    solid_parts = {}
 
-    -- Create Body
-    local neck_rest_body = cad.create("cube", {skel.base_radius, thickness, neck_rest_body_height})
-    neck_rest_body = cad.transform("translate", neck_rest_body, {skel.base_radius / 2, 0, 0})
+    -- 3. Base Plate Construction (Sharp Components)
+    spine = anchored_cube({x = base_width, y = total_length, z = thickness})
+    spine = cad.modify.translate(spine, {base_width, 0, 0})
+    table.insert(solid_parts, spine)
 
-    -- Create Head
-    -- Note: This is an angled block.
-    local neck_rest_head = cad.create("cube", {skel.base_radius, thickness, neck_rest_head_height})
-    neck_rest_head = cad.transform("rotate", neck_rest_head, {-angle, 0, 0})
-    -- Translate to sit on top of body
-    neck_rest_head = cad.transform("translate", neck_rest_head, {skel.base_radius / 2, 0, neck_rest_body_height})
+    front_tab = anchored_cube({x = dims.base_diameter, y = neck_rest_base_length, z = thickness})
+    table.insert(solid_parts, front_tab)
 
-    -- NECK CUTOUT
-    -- Defined entirely by Skeleton. We create a cylinder along the `skel.axis`.
-    
-    -- Cutout properties
-    local neck_rest_tolerance = tolerance
-    local top_entry_scale = 1.2
-    local cutout_radius = skel.neck_radius + neck_rest_tolerance
-    local cutout_height_len = dims.neck_height * 2 -- Make it long enough to cut through everything
-    local cutout = cad.create("cylinder", {h=cutout_height_len, r1=cutout_radius, r2=cutout_radius})
-    
-    -- Rotate and Position Cutout
-    -- Cylinder defaults to Z-axis. We rotate it to match flask axis.
-    cutout = cad.transform("rotate", cutout, {skel.diagonal, 0, 0})
-    
-    -- Translate to Shoulder position minus a shift to ensure it cuts through the start.
-    local start_shift = dims.neck_height * 0.5
-    local start_x = skel.neck_rest_target.x
-    local start_y = skel.neck_rest_target.y - start_shift * skel.axis_y_comp
-    local start_z = skel.neck_rest_target.z - start_shift * skel.axis_z_comp
-    
-    -- Lower the cutout to match the lowered body height and ensure deep fit
-    start_z = start_z - thickness
-    
-    cutout = cad.transform("translate", cutout, {skel.base_radius, start_y, start_z}) -- X is roughly centered
-    
-    -- Create the Hull for the top opening (Access Slot)
-    -- We simulate the user dropping the flask in.
-    -- Move a copy of the cutout "Up" (Normal to axis? Or vertical?).
-    -- Usually "Up" in world space for a drop-in holder.
-    local cutout_top = cad.create("cylinder", {h=cutout_height_len, r1=cutout_radius * top_entry_scale, r2=cutout_radius * top_entry_scale})
-    cutout_top = cad.transform("rotate", cutout_top, {skel.diagonal, 0, 0})
-    
-    -- Lift top cutout upward by `neck_radius`.
-    -- Direction: World Z?
-    local lift = skel.neck_radius
-    cutout_top = cad.transform("translate", cutout_top, {skel.base_radius, start_y, start_z + lift})
-    
-    -- Combine Cutouts
-    local full_cutout = cad.boolean("hull", {cutout, cutout_top})
-    
-    -- Combine Rest Parts
-    local neck_rest = cad.boolean("union", {neck_rest_base, neck_rest_body, neck_rest_head})
-    neck_rest = cad.boolean("difference", {neck_rest, full_cutout})
+    rear_tab = anchored_cube({x = dims.base_diameter, y = neck_rest_base_length, z = thickness})
+    rear_tab = cad.modify.translate(rear_tab, {0, total_length - neck_rest_base_length, 0})
+    table.insert(solid_parts, rear_tab)
 
-    -- 4. Base Rest Block
-    local base_rest_base = cad.create("cube", {dims.base_diameter, neck_rest_base_length, thickness})
-    base_rest_base = cad.transform("translate", base_rest_base, {0, total_length - neck_rest_base_length, 0})
+    -- 4. Neck Rest Tower Construction (Sharp Components)
+    neck_bottom_z_at_target = skel.neck_rest_target.z - skel.vertical_radius_neck
+    neck_rest_body_height = utils.round(neck_bottom_z_at_target - tolerance - thickness, 4)
+    neck_rest_head_height = utils.round(vpro(skel.neck_radius, skel.diagonal), 4)
 
-    local base_rest_left = cad.right_angle_triangle(vpro(skel.base_radius, skel.diagonal), hpro(skel.base_radius, skel.diagonal), thickness)
-    base_rest_left = cad.transform("rotate", base_rest_left, {180, 270, 0})
-    base_rest_left = cad.transform("translate", base_rest_left, {base_width, total_length, 0})
-
-    local base_rest_right = cad.right_angle_triangle(vpro(skel.base_radius, skel.diagonal), hpro(skel.base_radius, skel.diagonal), thickness)
-    base_rest_right = cad.transform("rotate", base_rest_right, {180, 270, 0})
-    base_rest_right = cad.transform("translate", base_rest_right, {base_width * 2 - thickness, total_length, 0})
-    
-    local base_rest = cad.boolean("union", {base_rest_base, base_rest_left, base_rest_right})
-
-    -- 5. Ruler Plate (Connector)
-    local ruler_width_adjustment = tolerance / math.sin(math.rad(skel.diagonal))
-    local ruler_plate_height = neck_rest_body_height - thickness
-    local ruler_plate_length = dims.chest_height - thickness - hpro(thickness, -angle) - ruler_width_adjustment
-    local ruler_plate_clearance = thickness + tolerance
-    local ruler_plate_scale = math.max((ruler_plate_height - ruler_plate_clearance) / ruler_plate_height, thickness / ruler_plate_height)
-    local ruler_plate = cad.right_angle_triangle(ruler_plate_height * ruler_plate_scale, ruler_plate_length * ruler_plate_scale, thickness)
-    ruler_plate = cad.transform("rotate", ruler_plate, {0, 270, 0})
-    ruler_plate = cad.transform("translate", ruler_plate, {skel.base_radius, thickness, thickness})
-
-    -- 6. Provenance engravings
-    local commit_id = get_commit_id()
-    local mark_text_size = round(base_width * 0.18, 4)
-    local mark_depth = round(thickness + 0.2, 4)
-    local commit_text = cad.create("text", {
-        text = scad_string(commit_id),
-        size = mark_text_size,
-        halign = scad_string("left"),
-        valign = scad_string("center")
-    })
-    local commit_mark = {
-        linear_extrude = {
-            params = {height = mark_depth},
-            inputs = {commit_text}
-        }
-    }
-    commit_mark = cad.transform("rotate", commit_mark, {0, 0, 180})
-    commit_mark = cad.transform("translate", commit_mark, {
-        round(base_width, 4),
-        round(neck_rest_base_length / 2, 4),
-        -0.1
-    })
-
-    local flask_id = get_engraving_id(dims)
-    local flask_text = cad.create("text", {
-        text = scad_string(flask_id),
-        size = mark_text_size,
-        halign = scad_string("left"),
-        valign = scad_string("center")
-    })
-    local flask_mark = {
-        linear_extrude = {
-            params = {height = mark_depth},
-            inputs = {flask_text}
-        }
-    }
-    flask_mark = cad.transform("rotate", flask_mark, {0, 0, 180})
-    flask_mark = cad.transform("translate", flask_mark, {
-        round(dims.base_diameter - thickness, 4),
-        round(neck_rest_base_length / 2, 4),
-        -0.1
-    })
-
-    -- Combine everything, then cut both provenance marks through the two base tabs.
-    local result = cad.boolean("union", {base, base_rest, neck_rest, ruler_plate})
-    result = cad.boolean("difference", {result, commit_mark, flask_mark})
-
-    return result
-end
-
-function main()
-	local measurements_path = arg[1] -- yaml file
-	local output_path = arg[2] -- scad file
-	local with_flask = arg[3] -- boolean
-
-    local dims = read_yaml(measurements_path)
-    dims.body_height = dims.total_height - dims.neck_height
-    local erlenmeyer, chest_height = flask(dims)
-    dims.chest_height = chest_height
-
-    local angle = 30
-    -- Tolerance Calculation (Strict Uniform Gap)
-    local tolerance = 0.005 -- 0.005mm uniform gap
-    local thickness = round(dims.total_height / 50, 2)
-
-    local holder = erlenmeyer_holder(dims, angle, thickness, tolerance)
-    local openscad_holder = cad.encode(holder)
-    cad.write(output_path, openscad_holder, 50)
-
-    if with_flask and with_flask == "true" then
-        local x_offset = round(dims.base_diameter / 2, 4)
-        local y_offset = round(hpro(dims.body_height, angle) + hpro(dims.neck_diameter / 2, 90 - angle) + hpro(thickness, angle), 4)
-        local z_offset = round(thickness + tolerance + vpro(dims.base_diameter / 2, 90 - angle), 4)
-
-        erlenmeyer = cad.transform("rotate", erlenmeyer, {90 - angle, 0, 0})
-        erlenmeyer = cad.transform("translate", erlenmeyer, {x_offset, y_offset, z_offset})
-        local openscad_erlenmeyer = cad.encode(erlenmeyer)
-        cad.append(output_path, openscad_erlenmeyer)
+    -- Neck Rest Body
+    if neck_rest_body_height > 0 then
+        neck_rest_body = anchored_cube({x = skel.base_radius, y = thickness, z = neck_rest_body_height})
+        neck_rest_body = cad.modify.translate(neck_rest_body, {skel.base_radius / 2, 0, thickness})
+        table.insert(solid_parts, neck_rest_body)
     end
+
+    -- Neck Rest Head (always positive)
+    neck_rest_head = anchored_cube({x = skel.base_radius, y = thickness, z = neck_rest_head_height})
+    neck_rest_head = cad.modify.rotate(neck_rest_head, {-angle, 0, 0})
+    actual_body_height = math.max(0, neck_rest_body_height)
+    neck_rest_head = cad.modify.translate(neck_rest_head, {skel.base_radius / 2, 0, thickness + actual_body_height})
+    table.insert(solid_parts, neck_rest_head)
+
+    -- 5. Base Rest Supports (Left & Right)
+    a = vpro(skel.base_radius, skel.diagonal)
+    b = hpro(skel.base_radius, skel.diagonal)
+
+    base_rest_left = right_angle_triangle(a, b, thickness)
+    base_rest_left = cad.modify.rotate(base_rest_left, {180, 270, 0})
+    base_rest_left = cad.modify.translate(base_rest_left, {base_width, total_length, thickness})
+    table.insert(solid_parts, base_rest_left)
+
+    base_rest_right = right_angle_triangle(a, b, thickness)
+    base_rest_right = cad.modify.rotate(base_rest_right, {180, 270, 0})
+    base_rest_right = cad.modify.translate(base_rest_right, {base_width * 2 - thickness, total_length, thickness})
+    table.insert(solid_parts, base_rest_right)
+
+    -- 6. Ruler Plate Construction
+    ruler_width_adjustment = tolerance / math.sin(math.rad(skel.diagonal))
+    ruler_plate_height = neck_rest_body_height - thickness
+    ruler_plate_length = dims.chest_height - thickness - hpro(thickness, -angle) - ruler_width_adjustment
+
+    if ruler_plate_height > 0 and ruler_plate_length > 0 then
+        ruler_plate_clearance = thickness + tolerance
+        ruler_plate_scale = math.max(
+            (ruler_plate_height - ruler_plate_clearance) / ruler_plate_height,
+            thickness / ruler_plate_height
+        )
+        r_h = ruler_plate_height * ruler_plate_scale
+        r_l = ruler_plate_length * ruler_plate_scale
+
+        ruler = right_angle_triangle(r_h, r_l, thickness)
+        ruler = cad.modify.rotate(ruler, {0, 270, 0})
+        ruler = cad.modify.translate(ruler, {skel.base_radius + thickness / 2, thickness, thickness})
+        table.insert(solid_parts, ruler)
+    end
+
+    -- Union solid body parts together
+    solid_body = cad.union(solid_parts)
+
+    -- 7. Apply General Rounding (radius = 0.1cm / 1mm)
+    round_r = 0.1
+    rounded_body = cad.round(solid_body, round_r, 16)
+
+    -- 8. Trim the bottom at Z = 0 to preserve print-bed flatness
+    trimmed_body = cad.combine.trim(rounded_body, {0, 0, 1}, 0)
+
+    -- 9. Engravings and Cutout subtraction
+    engrave_depth = utils.round(thickness * 0.4, 4)
+    commit_id = get_commit_id()
+    flask_id = get_engraving_id(dims)
+
+    max_len = math.max(#commit_id, #flask_id)
+    text_size = (base_width - 2 * thickness) / (max_len * 1.2 - 0.2)
+    text_size = utils.round(math.min(text_size, base_width * 0.12), 4)
+
+    commit_width = utils.round((#commit_id * 1.2 - 0.2) * text_size, 4)
+    flask_width = utils.round((#flask_id * 1.2 - 0.2) * text_size, 4)
+
+    commit_x = utils.round(base_width / 2 - commit_width / 2, 4)
+    flask_x = utils.round(2.5 * base_width - flask_width / 2, 4)
+
+    commit_mark = create_engraving_mark(commit_id, text_size, engrave_depth)
+    commit_mark = cad.modify.translate(commit_mark, {
+        commit_x,
+        utils.round(neck_rest_base_length / 2, 4),
+        -0.01
+    })
+
+    flask_mark = create_engraving_mark(flask_id, text_size, engrave_depth)
+    flask_mark = cad.modify.translate(flask_mark, {
+        flask_x,
+        utils.round(neck_rest_base_length / 2, 4),
+        -0.01
+    })
+
+    -- Neck Cutout
+    cutout_radius = skel.neck_radius + tolerance
+    cutout_height_len = dims.neck_height * 2
+    cutout = anchored_cylinder({h = cutout_height_len, r1 = cutout_radius, r2 = cutout_radius})
+    cutout = cad.modify.rotate(cutout, {skel.diagonal, 0, 0})
+
+    start_shift = dims.neck_height * 0.5
+    start_y = skel.neck_rest_target.y - start_shift * skel.axis_y_comp
+    start_z = skel.neck_rest_target.z - start_shift * skel.axis_z_comp
+    cutout = cad.modify.translate(cutout, {skel.base_radius, start_y, start_z})
+
+    cutout_top = anchored_cylinder({h = cutout_height_len, r1 = cutout_radius * 1.2, r2 = cutout_radius * 1.2})
+    cutout_top = cad.modify.rotate(cutout_top, {skel.diagonal, 0, 0})
+    cutout_top = cad.modify.translate(cutout_top, {skel.base_radius, start_y, start_z + skel.neck_radius})
+
+    full_cutout = cad.hull({cutout, cutout_top})
+
+    -- Difference the cutouts and engravings from the rounded solid body
+    holder = cad.difference({
+        trimmed_body,
+        full_cutout,
+        commit_mark,
+        flask_mark
+    })
+
+    -- Translate to align with the positive quadrant (X_min = 0, Y_min = 0)
+    holder = cad.modify.translate(holder, {round_r, round_r, 0})
+
+    return holder
 end
 
-main()
+function resolve_measurements_path()
+    path = os.getenv("CVS_MEASUREMENTS")
+    if (path == nil or path == "") and type(arg) == "table" then
+        path = arg[1]
+    end
+    if path == nil or path == "" then
+        error("CVS_MEASUREMENTS is not set and no measurements path was provided.")
+    end
+    return path
+end
+
+function env_truthy(value)
+    if value == nil then return false end
+    v = string.lower(tostring(value))
+    return v == "1" or v == "true" or v == "yes" or v == "y"
+end
+
+measurements_path = resolve_measurements_path()
+dims = utils.read_yaml(measurements_path)
+dims.body_height = dims.total_height - dims.neck_height
+
+erlenmeyer, chest_height = flask_geom.build_flask(dims)
+dims.chest_height = chest_height
+
+angle = 30
+tolerance = 0.005
+thickness = utils.round(dims.total_height / 50, 2)
+
+holder = erlenmeyer_holder(dims, angle, thickness, tolerance)
+
+with_flask = env_truthy(os.getenv("CVS_WITH_FLASK"))
+if with_flask then
+    x_offset = utils.round(dims.base_diameter / 2, 4) + 0.1
+    y_offset = utils.round(
+        hpro(dims.body_height, angle) + hpro(dims.neck_diameter / 2, 90 - angle) + hpro(thickness, angle),
+        4
+    ) + 0.1
+    z_offset = utils.round(thickness + tolerance + vpro(dims.base_diameter / 2, 90 - angle), 4)
+
+    erlenmeyer = cad.modify.rotate(erlenmeyer, {90 - angle, 0, 0})
+    erlenmeyer = cad.modify.translate(erlenmeyer, {x_offset, y_offset, z_offset})
+    return cad.union({holder, erlenmeyer})
+end
+
+return holder

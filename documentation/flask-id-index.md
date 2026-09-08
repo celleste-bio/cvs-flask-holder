@@ -73,6 +73,7 @@ The full ID is the durable repo key. Use it in manifests, documentation, and any
 | `models/250ml` | `G250O1` | `generic-erlenmeyer-0250-open-v1` |
 | `models/500ml` | `G500O1` | `generic-erlenmeyer-0500-open-v1` |
 | `models/1000ml` | `G1KO1` | `generic-erlenmeyer-1000-open-v1` |
+| `models/2000ml` | `G2KO1` | `generic-erlenmeyer-2000-open-v1` |
 | `models/tarsons_pc_vented_125ml` | `T125V1` | `tarsons-cellculture-0125-vented-v1` |
 | `models/tarsons_pc_vented_250ml` | `T250V1` | `tarsons-cellculture-0250-vented-v1` |
 | `models/tarsons_pc_vented_500ml` | `T500V1` | `tarsons-cellculture-0500-vented-v1` |

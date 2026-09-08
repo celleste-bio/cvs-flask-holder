@@ -105,5 +105,5 @@ When adding or revising a flask model:
 1. Add or update the normalized metadata in `measurements.yaml`.
 2. Assign a new `engraving_id` and `flask_id` if needed.
 3. Update [flask-id-index.md](/root/cvs-flask-holder/documentation/flask-id-index.md).
-4. Regenerate SCAD files so the physical engraving matches the metadata.
-5. Regenerate downstream STL or toolpath artifacts as needed.
+4. Run `scripts/model_all.sh` to regenerate STL files so the physical engraving matches the updated metadata.
+5. Run `scripts/slice_all.sh` to regenerate G-code toolpaths.

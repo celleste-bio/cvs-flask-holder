@@ -1,6 +1,0 @@
-[submodule "deps/lua-utils"]
-	path = dependencies/lua-utils
-	url = https://github.com/BenSiv/lua-utils
-[submodule "deps/lua-openscad"]
-	path = dependencies/lua-openscad
-	url = https://github.com/BenSiv/lua-openscad

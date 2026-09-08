@@ -14,19 +14,20 @@ usage() {
 Usage: ./scripts/build_all.sh [options]
 
 Run the full holder pipeline:
-  1. generate SCAD sources
-  2. render holder STL files
-  3. slice holder STL files to BGCODE
+  1. export STL model files with Luametry
+  2. refresh holder STL files
+  3. slice holder STL files to GCODE
   4. render comparison scene PNG previews
 
 Options:
-  --no-model      Skip SCAD generation
+  --no-model      Skip STL export
   --no-render     Skip STL rendering
-  --no-slice      Skip BGCODE slicing
+  --no-slice      Skip GCODE slicing
   --no-compare    Skip comparison PNG generation
   -h, --help      Show this help text
 
 Environment:
+  LUAMETRY_BIN        Optional path to luametry executable
   COMPARE_OUTPUT_DIR   Output directory for comparison PNG files
   PRUSASLICER          Optional path to PrusaSlicer executable
   PRINTER              Optional slicer printer profile override
@@ -119,17 +120,18 @@ done
 cd "$REPO_DIR"
 
 if [ "$RUN_MODEL" -eq 1 ]; then
-    require_command lua
-    echo "==> Modeling all variants"
+    echo "==> Exporting flask and holder STL files"
     "$SCRIPT_DIR/model_all.sh"
+    # Skip render_all.sh as model_all.sh already exports holder.stl
+    RUN_RENDER=0
 fi
 
-if [ "$RUN_RENDER" -eq 1 ] || [ "$RUN_COMPARE" -eq 1 ]; then
+if [ "$RUN_COMPARE" -eq 1 ]; then
     require_command openscad
 fi
 
 if [ "$RUN_RENDER" -eq 1 ]; then
-    echo "==> Rendering all holder STL files"
+    echo "==> Refreshing holder STL files"
     "$SCRIPT_DIR/render_all.sh"
 fi
 
