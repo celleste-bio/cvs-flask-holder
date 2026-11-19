@@ -1,12 +1,24 @@
 -- Luametry entry: build the holder model from a measurements YAML.
 
-script_dir = string.match(debug.getinfo(1).source, "@(.*[/\\])") or "./"
+script_dir = string.match(debug.getinfo(1).source, "@(.*[/\\])")
+if script_dir == nil then
+    script_dir = "./"
+end
 bootstrap = dofile(script_dir .. "bootstrap.lua")
 bootstrap.configure_imports(script_dir)
 
-utils = require("lib.utils")
-cad = require("cad")
-flask_geom = require("flask_geom")
+const paths = require("paths")
+const yaml = require("yaml")
+const cad = require("cad")
+const flask_geom = require("flask_geom")
+
+function round_num(num, decimals)
+    mult = 10 ^ 0
+    if decimals != nil then
+        mult = 10 ^ decimals
+    end
+    return math.floor(num * mult + 0.5) / mult
+end
 
 -- Helper: Horizontal Projection
 function hpro(length, angle)
@@ -39,7 +51,9 @@ function anchored_cube(params)
 end
 
 function anchored_cylinder(params)
-    params.fn = params.fn or 64
+    if params.fn == nil then
+        params.fn = 64
+    end
     return cad.cylinder(params)
 end
 
@@ -52,7 +66,10 @@ function get_commit_id()
 end
 
 function get_engraving_id(dims)
-    engraving_id = dims.engraving_id or dims.flask_id
+    engraving_id = dims.engraving_id
+    if engraving_id == nil or engraving_id == "" then
+        engraving_id = dims.flask_id
+    end
     if engraving_id == nil or engraving_id == "" then
         error("measurements.yaml must define engraving_id or flask_id for holder engraving")
     end
@@ -94,10 +111,10 @@ function calculate_skeleton(dims, angle, thickness, tolerance)
     -- 2. Vertical Clearance (Z-Offset)
     s.vertical_radius_base = s.base_radius * math.cos(rad_angle)
     s.vertical_radius_neck = s.neck_radius * math.cos(rad_angle)
-    s.z_offset = utils.round(thickness + tolerance + s.vertical_radius_base, 4)
+    s.z_offset = round_num(thickness + tolerance + s.vertical_radius_base, 4)
 
     -- 3. Horizontal Positioning (Y-Offset)
-    s.y_offset = utils.round(
+    s.y_offset = round_num(
         hpro(dims.body_height, angle) + hpro(s.neck_radius, s.diagonal) + hpro(thickness, angle),
         4
     )
@@ -135,9 +152,9 @@ function erlenmeyer_holder(dims, angle, thickness, tolerance)
 
     -- 2. Base Plate Parameters
     length_shift = tolerance / math.sin(math.rad(skel.diagonal))
-    total_length = utils.round(skel.y_offset + length_shift, 4)
-    base_width = utils.round(dims.base_diameter / 3, 4)
-    neck_rest_base_length = utils.round(total_length / 8, 4)
+    total_length = round_num(skel.y_offset + length_shift, 4)
+    base_width = round_num(dims.base_diameter / 3, 4)
+    neck_rest_base_length = round_num(total_length / 8, 4)
 
     solid_parts = {}
 
@@ -155,8 +172,8 @@ function erlenmeyer_holder(dims, angle, thickness, tolerance)
 
     -- 4. Neck Rest Tower Construction (Sharp Components)
     neck_bottom_z_at_target = skel.neck_rest_target.z - skel.vertical_radius_neck
-    neck_rest_body_height = utils.round(neck_bottom_z_at_target - tolerance - thickness, 4)
-    neck_rest_head_height = utils.round(vpro(skel.neck_radius, skel.diagonal), 4)
+    neck_rest_body_height = round_num(neck_bottom_z_at_target - tolerance - thickness, 4)
+    neck_rest_head_height = round_num(vpro(skel.neck_radius, skel.diagonal), 4)
 
     -- Neck Rest Body
     if neck_rest_body_height > 0 then
@@ -217,31 +234,31 @@ function erlenmeyer_holder(dims, angle, thickness, tolerance)
     trimmed_body = cad.combine.trim(rounded_body, {0, 0, 1}, 0)
 
     -- 9. Engravings and Cutout subtraction
-    engrave_depth = utils.round(thickness * 0.4, 4)
+    engrave_depth = round_num(thickness * 0.4, 4)
     commit_id = get_commit_id()
     flask_id = get_engraving_id(dims)
 
     max_len = math.max(#commit_id, #flask_id)
     text_size = (base_width - 2 * thickness) / (max_len * 1.2 - 0.2)
-    text_size = utils.round(math.min(text_size, base_width * 0.12), 4)
+    text_size = round_num(math.min(text_size, base_width * 0.12), 4)
 
-    commit_width = utils.round((#commit_id * 1.2 - 0.2) * text_size, 4)
-    flask_width = utils.round((#flask_id * 1.2 - 0.2) * text_size, 4)
+    commit_width = round_num((#commit_id * 1.2 - 0.2) * text_size, 4)
+    flask_width = round_num((#flask_id * 1.2 - 0.2) * text_size, 4)
 
-    commit_x = utils.round(base_width / 2 - commit_width / 2, 4)
-    flask_x = utils.round(2.5 * base_width - flask_width / 2, 4)
+    commit_x = round_num(base_width / 2 - commit_width / 2, 4)
+    flask_x = round_num(2.5 * base_width - flask_width / 2, 4)
 
     commit_mark = create_engraving_mark(commit_id, text_size, engrave_depth)
     commit_mark = cad.modify.translate(commit_mark, {
         commit_x,
-        utils.round(neck_rest_base_length / 2, 4),
+        round_num(neck_rest_base_length / 2, 4),
         -0.01
     })
 
     flask_mark = create_engraving_mark(flask_id, text_size, engrave_depth)
     flask_mark = cad.modify.translate(flask_mark, {
         flask_x,
-        utils.round(neck_rest_base_length / 2, 4),
+        round_num(neck_rest_base_length / 2, 4),
         -0.01
     })
 
@@ -294,7 +311,11 @@ function env_truthy(value)
 end
 
 measurements_path = resolve_measurements_path()
-dims = utils.read_yaml(measurements_path)
+raw_yaml, read_err = paths.read_file(measurements_path)
+if raw_yaml == nil then
+    error("Failed to read measurements YAML: " .. tostring(read_err))
+end
+dims = yaml.load(raw_yaml)
 dims.body_height = dims.total_height - dims.neck_height
 
 erlenmeyer, chest_height = flask_geom.build_flask(dims)
@@ -302,18 +323,18 @@ dims.chest_height = chest_height
 
 angle = 30
 tolerance = 0.005
-thickness = utils.round(dims.total_height / 50, 2)
+thickness = round_num(dims.total_height / 50, 2)
 
 holder = erlenmeyer_holder(dims, angle, thickness, tolerance)
 
 with_flask = env_truthy(os.getenv("CVS_WITH_FLASK"))
 if with_flask then
-    x_offset = utils.round(dims.base_diameter / 2, 4) + 0.1
-    y_offset = utils.round(
+    x_offset = round_num(dims.base_diameter / 2, 4) + 0.1
+    y_offset = round_num(
         hpro(dims.body_height, angle) + hpro(dims.neck_diameter / 2, 90 - angle) + hpro(thickness, angle),
         4
     ) + 0.1
-    z_offset = utils.round(thickness + tolerance + vpro(dims.base_diameter / 2, 90 - angle), 4)
+    z_offset = round_num(thickness + tolerance + vpro(dims.base_diameter / 2, 90 - angle), 4)
 
     erlenmeyer = cad.modify.rotate(erlenmeyer, {90 - angle, 0, 0})
     erlenmeyer = cad.modify.translate(erlenmeyer, {x_offset, y_offset, z_offset})

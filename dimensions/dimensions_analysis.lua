@@ -1,14 +1,8 @@
--- Setup paths for dependencies
-local script_dir = arg[0]:match("(.*[/\\])") or "./"
-package.path = script_dir .. "../dependencies/lua-utils/src/?.lua;" .. script_dir .. "../dependencies/lua-openscad/src/?.lua;" .. package.path
+-- Dimensional ratio analysis across standard Erlenmeyer flask capacities.
 
-require("utils").using("utils")
-using("dataframes")
+const dataframes = require("dataframes")
 
--- local readdlm = require("delimited_files").readdlm
--- local measurements = readdlm("erlenmeyer-measurements.tsv", ",", true)
-
-local measurements = {
+const measurements = {
     [1] = {capacity=100, total_height=108, neck_height=35, base_diameter=66, neck_diameter=30},
     [2] = {capacity=250, total_height=143, neck_height=35, base_diameter=82, neck_diameter=36},
     [3] = {capacity=500, total_height=180, neck_height=45, base_diameter=100, neck_diameter=36},
@@ -16,20 +10,18 @@ local measurements = {
     [5] = {capacity=2000, total_height=285, neck_height=55, base_diameter=164, neck_diameter=51}
 }
 
-view(measurements)
+dataframes.view(measurements)
 
-local relative_measurements = {}
-for _, row in pairs(measurements) do
-    local capacity = row.capacity
-    table.insert(relative_measurements,
-        {
-            capacity = capacity,
-            total_height = row.total_height / capacity,
-            neck_height = row.neck_height / capacity,
-            base_diameter = row.base_diameter / capacity,
-            neck_diameter = row.neck_diameter / capacity
-        }
-    )
+relative_measurements = {}
+for _, row in ipairs(measurements) do
+    capacity = row.capacity
+    table.insert(relative_measurements, {
+        capacity = capacity,
+        total_height = row.total_height / capacity,
+        neck_height = row.neck_height / capacity,
+        base_diameter = row.base_diameter / capacity,
+        neck_diameter = row.neck_diameter / capacity
+    })
 end
 
-view(relative_measurements)
+dataframes.view(relative_measurements)

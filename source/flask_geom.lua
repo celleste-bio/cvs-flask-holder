@@ -3,7 +3,9 @@
 cad = require("cad")
 
 function anchored_cylinder(params)
-    params.fn = params.fn or 64
+    if params.fn == nil then
+        params.fn = 64
+    end
     return cad.cylinder(params)
 end
 
